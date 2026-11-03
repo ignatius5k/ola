@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+*.local
+*-preview.png
+preview.png
+mobile-preview.png
+demo-walkthrough.png
+unslop-overview.png
