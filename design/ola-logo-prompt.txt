@@ -1,0 +1,7 @@
+Ola logo selection
+
+The user selected the linked-shapes concept: two complementary, rounded violet pieces connected through a curved negative-space channel, accompanied by a simple Ola wordmark. This selected concept supersedes the earlier split-O draft.
+
+The approved image was generated with the built-in image generation tool and is preserved without raster edits in ola-linked-logo-approved.png. Original output: exec-b9de123f-08a9-4ed3-bcb0-34b515715589.png.
+
+Production implementation: public/ola-mark.svg. The scalable symbol follows the approved linked geometry with a flat #635BFF fill and a transparent background. The interface renders the Ola wordmark as native text beside the symbol.

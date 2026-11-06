@@ -1,6 +1,6 @@
-# Match
+# Ola
 
-Match is a local prototype for the **Intelligent Automation** track. It compares synthetic collection records with synthetic ledger postings, automatically matches records that pass every policy rule, and routes exceptions to a reviewer. A visual investigation playback explains each step.
+Ola is a local prototype for the **Intelligent Automation** track. It compares synthetic collection records with synthetic ledger postings, automatically matches records that pass every policy rule, and routes exceptions to a reviewer. A visual investigation playback explains each step.
 
 **This is a demo.** It uses no customer data, bank connection, deployed AI agents, or real ledger posting. The role selector illustrates a reviewer workflow; it is not authentication or access control.
 
@@ -12,8 +12,8 @@ Match is a local prototype for the **Intelligent Automation** track. It compares
 ## Run locally
 
 ```bash
-git clone https://github.com/ignatius5k/proofline.git
-cd proofline
+git clone https://github.com/ignatius5k/ola.git
+cd ola
 npm ci
 npm run dev -- --port 8766
 ```
@@ -31,8 +31,8 @@ Run the matching-engine tests with `npm test`.
 
 ## Demo walkthrough
 
-1. **Home:** Review the batch summary. Seven of 24 synthetic collections match automatically; 17 require review or additional evidence. Select **Run check again** to watch the batch playback.
-2. **Duplicate reference:** Open `COL-1012` from **Transactions** and select **Run investigation**. Two ledger postings share the same reference and amount. The policy gate blocks automatic closure. Inspect the four playback steps and their checklists; use **Pause**, **Resume**, and **Replay** to control the investigation.
+1. **Home:** Review the batch summary. Seven of 24 synthetic collections match automatically; 17 require review or additional evidence. Select **Run check again** to watch the batch playback at 0.75 seconds per record. Use **Pause** and **Resume** to inspect an outcome.
+2. **Duplicate reference:** Open `COL-1012` from **Transactions** and select **Run investigation**. Two ledger postings share the same reference and amount. The policy gate blocks automatic closure. Inspect the four playback steps and their checklists; use **Pause**, **Resume**, and **Replay** to control the investigation. Each stage runs for 2.8 seconds.
 3. **Reviewer decision:** Open `COL-1013` from **Transactions**. Its recorded fee explains the amount difference. Set the role in the top bar to **Reviewer**, select the ledger posting, and enter a reason of at least eight characters. The persistent bottom bar displays **Ready for approval** and enables **Approve match** when every required input is complete. Approval records the internal **Reviewed match** status, displayed as **Verified** in the interface.
 4. **Later evidence:** On **Sources & rules → Data sources**, select **Receive sample file**, then **Run reconciliation**. The later ledger posting is processed and case `COL-1014` matches automatically.
 5. **Audit:** Open **Activity** to inspect actions and export the CSV. Use **Sources & rules → Data sources → Reset the entire demo** to clear reviewer decisions and return to the initial state.
@@ -42,6 +42,22 @@ Each case now includes **Monitoring & guardrails** below the investigation playb
 The contextual **Back** button returns to the originating Home, Transactions, Reviews, or Activity page. It restores the list search, filters, selected rows, and scroll position.
 
 Reviewer decisions and activity are stored in your browser's `localStorage`. They persist across refreshes in the same browser profile. Reset them from the app when repeating the demo.
+
+### Dashboard metrics
+
+Home opens with **Amount requiring review**. Select the dropdown arrow beside the metric name to switch to **Collection volume** or **Matched amount**. The amount, record count, chart, and destination link update together for the selected currency. The X axis shows collection time in Singapore time; the Y axis shows cumulative amount in the selected currency. These charts group the current matching results by collection time.
+
+The **Next review** card opens an unresolved transaction. Supporting cards show review reasons, large transactions awaiting verification, recent activity, and the reconciliation summary.
+
+Metric and currency changes replay a 350 ms fade and 4 px entry authored in [Figma Motion](https://www.figma.com/design/LdlcNV4FoSqisMaepkRoue?node-id=4-7). Reduced-motion preferences disable the transition. The motion export is recorded in `design/ola-metric-motion.json`. Chart lines draw over 0.9 seconds, with animated axis labels. Select **Replay** beside the chart to repeat the animation.
+
+## Add a transaction manually
+
+Select the purple **+** button in the top bar to open **Add transaction**. Enter the counterparty, a unique payment reference, amount, currency, transaction date/time in Singapore time, and payment method. Both demo roles can add a collection record; only the Reviewer role can record a review decision.
+
+The app assigns a transaction ID, checks the existing ledger, opens the new case, and records the entry in Activity. A missing ledger posting stays **Awaiting evidence**. Large transaction thresholds still apply. Duplicate references and ledger evidence already associated with another case are rejected.
+
+Manual entries persist in this browser and are included in Transactions, Reviews, batch runs, and CSV exports. **Sources & rules → Data sources → Manual transactions** exports the entered source records. The overview separates SGD and USD totals using a currency selector. **Reset the entire demo** removes manual entries along with decisions and activity. Adding a record does not create a ledger posting or move funds.
 
 ## Matching policy
 
@@ -71,13 +87,15 @@ The amount flag does not override duplicate, reversal, currency, amount, or timi
 
 ## Interface references
 
-The shared shell and page layouts follow Stripe web screens inspected through Mobbin: [Home](https://mobbin.com/screens/fc5d4bcd-1d9a-4cf1-b2f0-cdecac3a1abf), [Transactions](https://mobbin.com/screens/f706524f-2964-47a5-ba06-4fdf75779e0f), [payment details](https://mobbin.com/screens/c3813cc0-16e8-45ef-8633-f21fe4f16652), and [events](https://mobbin.com/screens/ccbba4ee-5f88-4652-b4d7-1b9e7d7438fd). The interface uses Match's own synthetic records and policy. `src/stripe.css` contains the shared styling, `src/approval.css` contains the persistent review form and action bar, and `src/playback.css` contains the investigation and batch playback styling.
+The shared shell and page layouts follow Stripe web screens inspected through Mobbin: [Home](https://mobbin.com/screens/fc5d4bcd-1d9a-4cf1-b2f0-cdecac3a1abf), [Transactions](https://mobbin.com/screens/f706524f-2964-47a5-ba06-4fdf75779e0f), [payment details](https://mobbin.com/screens/c3813cc0-16e8-45ef-8633-f21fe4f16652), and [events](https://mobbin.com/screens/ccbba4ee-5f88-4652-b4d7-1b9e7d7438fd). The interface uses Ola's own synthetic records and policy. `src/stripe.css` contains the shared styling, `src/approval.css` contains the persistent review form and action bar, and `src/playback.css` contains the investigation and batch playback styling.
 
 ## Project structure
 
 | Path | Purpose |
 | --- | --- |
 | `src/main.jsx` | Pages, navigation, reviewer actions, and activity export. |
+| `src/Dashboard.jsx` | Review overview and dropdown metric selection. |
+| `src/CumulativeChart.jsx` | Currency-labelled cumulative charts with Singapore-time axes. |
 | `src/AgentStage.jsx` | Four-step case investigation playback. |
 | `src/BatchPlayback.jsx` | Batch reconciliation playback. |
 | `src/rules.js` | Code-editable matching criteria and settings. |

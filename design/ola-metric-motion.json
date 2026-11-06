@@ -1,0 +1,158 @@
+{
+  "name": "Ola metric switch and chart playback",
+  "figmaFileKey": "LdlcNV4FoSqisMaepkRoue",
+  "figmaNodeId": "4:7",
+  "figmaUrl": "https://www.figma.com/design/LdlcNV4FoSqisMaepkRoue?node-id=4-7",
+  "authoredWith": "Figma Motion manual keyframes via use_figma",
+  "motionNodeName": "Metric readout and chart \u00b7 Enter 700ms",
+  "keyframes": {
+    "OPACITY": [
+      {
+        "timeSeconds": 0,
+        "value": 0
+      },
+      {
+        "timeSeconds": 0.7,
+        "value": 1
+      }
+    ],
+    "TRANSLATION_Y": [
+      {
+        "timeSeconds": 0,
+        "value": 4
+      },
+      {
+        "timeSeconds": 0.7,
+        "value": 0
+      }
+    ]
+  },
+  "easing": {
+    "type": "CUSTOM_CUBIC_BEZIER",
+    "x1": 0.16,
+    "y1": 1,
+    "x2": 0.3,
+    "y2": 1
+  },
+  "implementation": {
+    "target": "Metric number, count, chart and axes group; native dropdown remains static.",
+    "trigger": "Replay once after the metric or currency changes.",
+    "durationMs": 350,
+    "easing": "cubic-bezier(0.16, 1, 0.3, 1)",
+    "iterations": 1,
+    "cssAdaptation": "@keyframes ola-metric-enter { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }\n@keyframes ola-axis-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }\n@keyframes ola-chart-reveal { from { transform: scaleX(0); } to { transform: scaleX(1); } }\n.metric-readout { animation: ola-metric-enter 350ms cubic-bezier(0.16, 1, 0.3, 1) both; }\n.chart-axis-labels { animation: ola-axis-enter 350ms cubic-bezier(0.16, 1, 0.3, 1) both; }\n.chart-line { stroke-dasharray: none; }\n.chart-reveal-mask { transform-origin: 0 0; animation: ola-chart-reveal 900ms linear backwards; }\n@media (prefers-reduced-motion: reduce) { .metric-readout, .chart-axis-labels, .chart-reveal-mask { animation: none; transform: none; opacity: 1; } }",
+    "conversionNote": "The authoritative Figma export below retains its original 700ms entries and 1800ms line reveal. Following the user's request for snappier motion, the app plays these tracks at 2x speed: 350ms entry and 900ms draw. Keyframes and easing are preserved; the default hold and infinite repeat are omitted.",
+    "playbackRate": 2,
+    "axisDurationMs": 350,
+    "chartDrawDurationMs": 900,
+    "renderingAdaptation": "The app reveals an always-solid polyline through a 900ms SVG clip rectangle instead of normalized stroke dashes. The clip rectangle covers the full plot and stroke endpoints after completion. No forward-filled transform remains; reduced motion uses the full static clip. The original Figma motion export is preserved below."
+  },
+  "studyVerification": {
+    "editableFrames": 7,
+    "editableTextNodes": 14,
+    "vectorNodes": 2,
+    "rasterUiNodes": 0,
+    "fontFallback": "Inter in the motion study because the platform system fonts were unavailable; keep the application's existing font stack."
+  },
+  "authoritativeGetMotionContext": {
+    "nodes": [
+      {
+        "nodeId": "4:7",
+        "nodeName": "Metric readout and chart \u00b7 Enter 700ms",
+        "nodeType": "FRAME",
+        "codeSnippets": {
+          "motionDev": "<motion.div style={{ transformOrigin: '0 0', transform: 'var(--motion-layout-transform, translate(0px)) var(--motion-design-transform-inverse, matrix(1, 0, 0, 1, 0, 0)) translate(0px, calc(var(--motion-translate-y, 0) * 1px)) var(--motion-design-transform, matrix(1, 0, 0, 1, 0, 0))' }} initial={{ '--motion-translate-y': 4, opacity: 0, }} animate={{ '--motion-translate-y': [4, 0, 0], opacity: [0, 1, 1], }} transition={{ '--motion-translate-y': { duration: 2, times: [0, 0.35, 1], ease: [[0.16, 1, 0.3, 1], \"linear\"], repeat: Infinity }, opacity: { duration: 2, times: [0, 0.35, 1], ease: [[0.16, 1, 0.3, 1], \"linear\"], repeat: Infinity }, }} />"
+        }
+      },
+      {
+        "nodeId": "4:10",
+        "nodeName": "Y axis title",
+        "nodeType": "TEXT",
+        "codeSnippets": {
+          "motionDev": "<motion.div style={{ transformOrigin: '0 0', transform: 'var(--motion-layout-transform, translate(0px)) var(--motion-design-transform-inverse, matrix(1, 0, 0, 1, 0, 0)) translate(0px, calc(var(--motion-translate-y, 0) * 1px)) var(--motion-design-transform, matrix(1, 0, 0, 1, 0, 0))' }} initial={{ '--motion-translate-y': 6, opacity: 0, }} animate={{ '--motion-translate-y': [6, 0, 0], opacity: [0, 1, 1], }} transition={{ '--motion-translate-y': { duration: 2, times: [0, 0.35, 1], ease: [[0.16, 1, 0.3, 1], \"linear\"], repeat: Infinity }, opacity: { duration: 2, times: [0, 0.35, 1], ease: [[0.16, 1, 0.3, 1], \"linear\"], repeat: Infinity }, }} />"
+        }
+      },
+      {
+        "nodeId": "4:12",
+        "nodeName": "Y axis values",
+        "nodeType": "FRAME",
+        "codeSnippets": {
+          "motionDev": "// Identical motion.dev animation to node Y axis title (4:10) \u2014 reuse the same component/variant instead of re-implementing it."
+        }
+      },
+      {
+        "nodeId": "4:18",
+        "nodeName": "Cumulative value line \u00b7 Draw 1800ms",
+        "nodeType": "VECTOR",
+        "codeSnippets": {
+          "motionDev": "<motion.path pathLength={1} initial={{ strokeDasharray: '0 1', strokeDashoffset: 0 }} animate={{ strokeDasharray: ['0 1', '1 1', '1 1'] }} transition={{ duration: 2, ease: 'linear', times: [0, 0.9, 1], repeat: Infinity }} />"
+        }
+      },
+      {
+        "nodeId": "4:19",
+        "nodeName": "X axis ticks",
+        "nodeType": "FRAME",
+        "codeSnippets": {
+          "motionDev": "// Identical motion.dev animation to node Y axis title (4:10) \u2014 reuse the same component/variant instead of re-implementing it."
+        }
+      },
+      {
+        "nodeId": "4:23",
+        "nodeName": "X axis title",
+        "nodeType": "TEXT",
+        "codeSnippets": {
+          "motionDev": "// Identical motion.dev animation to node Y axis title (4:10) \u2014 reuse the same component/variant instead of re-implementing it."
+        }
+      }
+    ],
+    "timelineCohorts": [
+      {
+        "rootNodeId": "4:2",
+        "durationMs": 2000,
+        "loopMode": "loop",
+        "memberNodeIds": [
+          "4:7",
+          "4:10",
+          "4:12",
+          "4:18",
+          "4:19",
+          "4:23"
+        ]
+      }
+    ]
+  },
+  "axisMotion": {
+    "figmaNodeIds": [
+      "4:10",
+      "4:12",
+      "4:19",
+      "4:23"
+    ],
+    "targets": [
+      "Y axis title",
+      "Y axis values",
+      "X axis ticks",
+      "X axis title"
+    ],
+    "durationMs": 700,
+    "opacity": [
+      0,
+      1
+    ],
+    "translationY": [
+      6,
+      0
+    ],
+    "easing": "cubic-bezier(0.16, 1, 0.3, 1)"
+  },
+  "chartMotion": {
+    "figmaNodeId": "4:18",
+    "nodeName": "Cumulative value line \u00b7 Draw 1800ms",
+    "property": "PATH_TRIM_END",
+    "durationMs": 1800,
+    "from": 0,
+    "to": 1,
+    "easing": "linear",
+    "cssEquivalent": "Normalize the SVG path with pathLength=1. Use stroke-dasharray: 1 1 and animate stroke-dashoffset from 1 to 0 once over 1800ms linear."
+  }
+}

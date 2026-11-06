@@ -20,7 +20,7 @@
 .rule-settings{border-top:1px solid var(--line);padding:14px 0 2px;margin-top:2px}.rule-settings strong{font-size:12px}.rule-settings p,.rule-config-note{font-size:11px;line-height:1.55;color:var(--muted);margin:5px 0 0}.rule-config-note{margin-top:12px}.rule-config-note code{font-family:'IBM Plex Mono',monospace;color:#315d49}
 @media(max-width:760px){.agent-checklist-head{padding:13px 14px}.agent-checklist ol{padding:2px 14px}}
 
-/* Proofline dashboard: Stripe-inspired information hierarchy, using Proofline data and identity. */
+/* Ola dashboard: Stripe-inspired information hierarchy, using Ola data and identity. */
 @media (min-width: 761px) {
   .app-shell { display:flex; }
   .sidebar { width:218px;min-width:218px;height:100dvh;min-height:100dvh;position:sticky;top:0;display:flex;flex-direction:column;align-items:stretch;gap:0;padding:22px 12px;border-right:1px solid var(--line);border-bottom:0; }

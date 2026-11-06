@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { analyse, canReviewMatch, createInitialState, getCases, recordDecision, runBatch } from './engine.js';
+import { addManualTransaction, analyse, canReviewMatch, createInitialState, getCases, getCollections, getLedger, recordDecision, runBatch } from './engine.js';
 import { RULE_SETTINGS, evaluateAutoRules, ruleDescriptions } from './rules.js';
 
 test('only unambiguous exact-value cases auto-match', () => {
@@ -223,4 +223,131 @@ test('expanded batch covers operational exception categories and the time bounda
   const cases = getCases(createInitialState());
   const category = id => cases.find(item => item.id === id).category;
   for (const [id, expected] of Object.entries({ 'COL-1021': 'timing', 'COL-1022': 'amount', 'COL-1023': 'amount', 'COL-1024': 'missing', 'COL-1025': 'fee', 'COL-1026': 'duplicate', 'COL-1027': 'reference', 'COL-1028': 'reversal', 'COL-1030': 'currency', 'COL-1031': 'high-value', 'COL-1033': 'auto' })) assert.equal(category(id), expected, id);
+});
+
+const manualInput = {
+  counterparty: 'New Harbour Services', reference: 'MANUAL-NEW-001', amount: '47.35', currency: 'SGD',
+  time: '2026-10-23T20:00:00+08:00', channel: 'Bank transfer'
+};
+
+test('manual collection entry supports legacy state, persistence, and pure state updates', () => {
+  const { manualCollections, ...legacy } = createInitialState();
+  const original = JSON.stringify(legacy);
+  const ledger = getLedger(legacy);
+  const added = addManualTransaction(legacy, { ...manualInput, counterparty: '  New Harbour Services  ', currency: 'sgd' });
+  const collection = added.manualCollections[0];
+  assert.equal(JSON.stringify(legacy), original);
+  assert.equal(getCollections(legacy).length, 24);
+  assert.equal(getCollections(added).length, 25);
+  assert.equal(getLedger(added), ledger, 'Adding a collection does not create a ledger posting.');
+  assert.equal(collection.counterparty, 'New Harbour Services');
+  assert.equal(collection.currency, 'SGD');
+  assert.equal(collection.amount, 47.35);
+  assert.equal(collection.time, '2026-10-23T12:00:00.000Z');
+  assert.match(collection.id, /^COL-M-/);
+  assert.equal(collection.source, 'Manual entry');
+  assert.equal(collection.createdBy, 'Analyst');
+  assert.equal(Number.isFinite(Date.parse(collection.createdAt)), true);
+  assert.deepEqual(added.decisions, legacy.decisions);
+  const restored = JSON.parse(JSON.stringify(added));
+  const item = getCases(restored).find(candidate => candidate.id === collection.id);
+  assert.equal(item.category, 'missing');
+  assert.equal(item.status, 'Awaiting evidence');
+  assert.equal(item.candidates.length, 0);
+  assert.equal(item.decision, undefined);
+  assert.equal(restored.audit.filter(event => event.caseId === collection.id && event.action === 'Manual transaction added').length, 1);
+  assert.equal(restored.audit.some(event => event.caseId === collection.id && event.action === 'Auto matched'), false);
+  const second = addManualTransaction(restored, { ...manualInput, reference: 'MANUAL-NEW-002' });
+  assert.notEqual(second.manualCollections[1].id, collection.id);
+  assert.equal(getCases(second).length, 26);
+  assert.match(runBatch(second).audit[0].detail, /26 collections/);
+});
+
+test('manual references are unique and cannot reuse another case’s ledger evidence', () => {
+  const initial = createInitialState();
+  assert.throws(() => addManualTransaction(initial, { ...manualInput, reference: '  qr-241024-101  ' }), /reference already exists/);
+  const added = addManualTransaction(initial, manualInput);
+  assert.throws(() => addManualTransaction(added, { ...manualInput, reference: ' manual-new-001 ' }), /reference already exists/);
+  assert.throws(() => addManualTransaction(initial, { ...manualInput, reference: 'QR-241024-180', amount: 320, time: '2026-10-23T13:02:00+08:00' }), /Supporting ledger posting is already associated/);
+  assert.throws(() => addManualTransaction(initial, { ...manualInput, reference: 'UNCLAIMED-REF', amount: 125, time: '2026-10-23T09:01:00+08:00' }), /Supporting ledger posting is already associated/);
+  assert.equal(getCollections(initial).length, 24);
+});
+
+test('manual entry validates role, required fields, currency, channel, and timestamp', () => {
+  const initial = createInitialState();
+  assert.doesNotThrow(() => addManualTransaction({ ...initial, role: 'Reviewer' }, manualInput));
+  assert.throws(() => addManualTransaction({ ...initial, role: 'Administrator' }, manualInput), /Analyst or Reviewer/);
+  for (const input of [
+    { ...manualInput, counterparty: '' }, { ...manualInput, counterparty: 'A'.repeat(121) },
+    { ...manualInput, counterparty: 'First\nSecond' }, { ...manualInput, reference: '  ' },
+    { ...manualInput, reference: 'R'.repeat(101) }, { ...manualInput, channel: 'Cash' },
+    { ...manualInput, currency: 'EUR' }, { ...manualInput, time: '2026-10-23T20:00' },
+    { ...manualInput, time: '2026-02-30T20:00:00+08:00' },
+    { ...manualInput, time: '2026-10-23T24:00:00+08:00' },
+    { ...manualInput, time: 'not-a-time' }
+  ]) assert.throws(() => addManualTransaction(initial, input));
+  const settings = { ...RULE_SETTINGS, largeTransactionThresholds: { ...RULE_SETTINGS.largeTransactionThresholds, EUR: 5000, XYZ: 1000 } };
+  assert.doesNotThrow(() => addManualTransaction(initial, { ...manualInput, currency: 'EUR' }, settings));
+  assert.throws(() => addManualTransaction(initial, { ...manualInput, currency: 'XYZ' }, settings), /configured review threshold/);
+});
+
+test('manual monetary values are positive and preserve two-decimal precision', () => {
+  const initial = createInitialState();
+  for (const amount of [0, -1, Infinity, NaN, null, true, '', '1e3', '1.001', 0.1 + 0.2, '90071992547409.90', '90071992547409.92']) {
+    assert.throws(() => addManualTransaction(initial, { ...manualInput, amount }), undefined, String(amount));
+  }
+  for (const [amount, expected] of [['0.29', 0.29], ['.50', 0.5], ['0001.20', 1.2], [12.34, 12.34]]) {
+    assert.equal(addManualTransaction(initial, { ...manualInput, amount }).manualCollections[0].amount, expected);
+  }
+});
+
+test('manual large transactions retain evidence requirements and create one flag audit entry', () => {
+  const initial = createInitialState();
+  const added = addManualTransaction(initial, { ...manualInput, amount: '10000.00' });
+  const collection = added.manualCollections[0];
+  const item = getCases(added).find(candidate => candidate.id === collection.id);
+  assert.equal(item.category, 'missing');
+  assert.equal(item.status, 'Awaiting evidence');
+  assert.deepEqual(item.amountReview, { required: true, amount: 10000, currency: 'SGD', threshold: 10000 });
+  assert.equal(canReviewMatch(item), false);
+  assert.throws(() => recordDecision({ ...added, role: 'Reviewer' }, { caseId: item.id, status: 'Reviewed match', ledgerId: 'LED-5010', note: 'Checked the transaction amount.', verifiedLargeAmount: true }), /needs more evidence/);
+  const flags = state => state.audit.filter(event => event.caseId === item.id && event.action === 'Large transaction flagged');
+  assert.equal(flags(added).length, 1);
+  assert.deepEqual(flags(added)[0].amountReview, item.amountReview);
+  assert.equal(flags(runBatch(added)).length, 1);
+  assert.equal(added.audit.filter(event => event.caseId === item.id && event.action === 'Manual transaction added').length, 1);
+});
+
+test('later ledger evidence cannot be reused by a manual transaction', () => {
+  const added = addManualTransaction(createInitialState(), { ...manualInput, reference: 'MANUAL-LATE-001', amount: 55, time: '2026-10-23T10:59:00+08:00' });
+  const manualId = added.manualCollections[0].id;
+  assert.equal(getCases(added).find(item => item.id === manualId).status, 'Awaiting evidence');
+  const processed = runBatch({ ...added, laterFileReceived: true });
+  const cases = getCases(processed);
+  const manual = cases.find(item => item.id === manualId);
+  assert.equal(cases.find(item => item.id === 'COL-1014').status, 'Auto matched');
+  assert.equal(manual.category, 'ledger-conflict');
+  assert.equal(manual.status, 'Needs review');
+  assert.equal(manual.autoLedgerId, null);
+  assert.deepEqual(manual.ledgerConflict, { ledgerIds: ['LED-5009'], caseIds: ['COL-1014'] });
+  assert.equal(canReviewMatch(manual), false);
+  assert.throws(() => recordDecision({ ...processed, role: 'Reviewer' }, { caseId: manualId, status: 'Reviewed match', ledgerId: 'LED-5009', note: 'Attempt to reuse the existing posting.' }), /needs more evidence/);
+  const conflicts = state => state.audit.filter(event => event.caseId === manualId && event.action === 'Ledger posting conflict');
+  assert.equal(conflicts(processed).length, 1);
+  assert.deepEqual(conflicts(processed)[0].ledgerConflict, manual.ledgerConflict);
+  assert.equal(conflicts(runBatch(processed)).length, 1);
+  assert.equal(getLedger(processed).some(row => row.id === 'LED-5009'), true);
+
+  const oldDecision = { status: 'Reviewed match', ledgerId: 'LED-5009', note: 'Legacy review before the conflict guard.', actor: 'Reviewer' };
+  const legacy = { ...processed, decisions: { ...processed.decisions, [manualId]: oldDecision } };
+  const rechecked = getCases(legacy).find(item => item.id === manualId);
+  assert.equal(rechecked.status, 'Needs review');
+  assert.equal(rechecked.decision, oldDecision);
+  assert.equal(getCases({ ...legacy, decisions: { ...legacy.decisions, [manualId]: { ...oldDecision, status: 'Escalated' } } }).find(item => item.id === manualId).status, 'Escalated');
+
+  const settings = { ...RULE_SETTINGS, largeTransactionThresholds: { SGD: 50, USD: 10000 } };
+  const highValue = getCases(processed, settings).find(item => item.id === manualId);
+  assert.equal(highValue.category, 'ledger-conflict');
+  assert.deepEqual(highValue.amountReview, { required: true, amount: 55, currency: 'SGD', threshold: 50 });
+  assert.equal(canReviewMatch(highValue, settings), false);
 });

@@ -1,0 +1,47 @@
+.dashboard-overview .today-layout{margin-bottom:34px}
+.dashboard-overview .today-labels{justify-content:flex-start;flex-wrap:wrap;gap:10px 28px}
+.dashboard-overview .dashboard-metric-control{position:relative;display:inline-flex;align-items:center;color:#596579;border-radius:3px}
+.dashboard-overview .dashboard-metric-control>select{appearance:none;-webkit-appearance:none;field-sizing:content;max-width:100%;margin:0;padding:2px 20px 2px 0;border:0;border-radius:3px;background:transparent;color:inherit;font-family:inherit;font-size:11px;font-weight:400;line-height:1.4;cursor:pointer;box-shadow:none}
+.dashboard-overview .dashboard-metric-control>svg{position:absolute;right:2px;pointer-events:none;color:#687385}
+.dashboard-overview .dashboard-metric-control>select:focus-visible{outline:2px solid #635bff;outline-offset:4px}
+.dashboard-overview .dashboard-metric-context{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px 20px;padding-top:14px;margin-top:16px;border-top:1px solid var(--line)}
+.dashboard-overview .dashboard-metric-context>span{font-size:10px;color:#8792a2;line-height:1.5}
+.dashboard-overview .dashboard-metric-context>.text-button{font-size:11px;flex:none}
+.dashboard-overview .dashboard-next-review{display:block}
+.dashboard-overview .dashboard-next-review h3{margin-bottom:17px}
+.dashboard-overview .dashboard-next-review h3>.badge{font-size:9px;font-weight:500}
+.dashboard-overview .dashboard-next-merchant{display:block;font-size:12px;font-weight:550;line-height:1.5;color:#414552;margin-bottom:4px}
+.dashboard-overview .dashboard-next-review .widget-value{font-size:20px;font-weight:550;letter-spacing:-.25px;margin-bottom:8px}
+.dashboard-overview .dashboard-next-review .dashboard-next-reason{font-size:11px;line-height:1.5;margin:0 0 17px;color:#687385}
+.dashboard-overview .dashboard-review-button{min-height:32px;font-size:11px;padding:7px 10px;gap:8px}
+.dashboard-overview .dashboard-all-reviews{display:flex;width:max-content;font-size:10px;margin-top:14px}
+.dashboard-overview .dashboard-next-empty{padding:0 0 4px;color:#687385}
+.dashboard-overview .dashboard-next-empty>svg{display:block;color:#598447;margin-bottom:11px}
+.dashboard-overview .dashboard-next-empty>strong{display:block;font-size:12px;font-weight:550;line-height:1.4;color:#414552;margin-bottom:7px}
+.dashboard-overview .dashboard-next-empty>p{font-size:11px;line-height:1.55;margin:0}
+.dashboard-overview .overview-widget-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.dashboard-overview .overview-widget{min-height:238px}
+.dashboard-overview .widget-list>button{gap:14px}
+.dashboard-overview .widget-list>button>span:first-child{gap:5px}
+.dashboard-overview .dashboard-review-row-meta{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:none;white-space:nowrap}
+.dashboard-overview .dashboard-review-row-meta>strong{font-size:11px;font-weight:500}
+.dashboard-overview .widget-list small{font-size:10px}
+.dashboard-overview .widget-transaction{width:100%;margin-top:0;flex-direction:row}
+.dashboard-overview .widget-transaction>span{min-width:0}
+.dashboard-overview .widget-transaction small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;font-size:9px}
+.dashboard-overview .widget-activity>div{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:5px 12px;padding:11px 0}
+.dashboard-overview .widget-activity small{grid-column:1 / -1;font-size:9px;line-height:1.4;color:#8792a2}
+.dashboard-overview .widget-activity>div:last-child{border-bottom:0}
+.dashboard-overview button:focus-visible{outline:2px solid #635bff;outline-offset:3px}
+@media(max-width:1150px){.dashboard-overview .today-labels{gap:10px 18px}.dashboard-overview .dashboard-metric-context{align-items:flex-start;flex-direction:column;gap:7px}.dashboard-overview .dashboard-next-review{padding:15px}.dashboard-overview .dashboard-next-review .widget-value{font-size:18px}}
+@media(max-width:760px){.dashboard-overview .today-layout{margin-bottom:28px}.dashboard-overview .dashboard-metric-control>select{font-size:10px}.dashboard-overview .dashboard-next-review h3{margin-bottom:13px}.dashboard-overview .dashboard-next-merchant{font-size:11px}.dashboard-overview .overview-widget{min-height:230px}.dashboard-overview .widget-list>button{gap:8px}.dashboard-overview .widget-list strong,.dashboard-overview .dashboard-review-row-meta>strong{font-size:10px}.dashboard-overview .widget-list small{font-size:9px}.dashboard-overview .widget-list .badge{font-size:8px}}
+@media(max-width:540px){.dashboard-overview .today-layout{grid-template-columns:1fr}.dashboard-overview .today-labels{gap:10px 20px}.dashboard-overview .dashboard-metric-control>select{font-size:11px}.dashboard-overview .dashboard-next-review{display:block;padding:16px}.dashboard-overview .dashboard-next-review h3{margin-bottom:15px}.dashboard-overview .dashboard-next-review .widget-value{font-size:20px}.dashboard-overview .dashboard-next-merchant{font-size:12px}.dashboard-overview .dashboard-review-button{min-height:35px;font-size:12px}.dashboard-overview .dashboard-all-reviews{font-size:11px}.dashboard-overview .overview-widget-grid{grid-template-columns:1fr}.dashboard-overview .overview-widget{min-height:225px}.dashboard-overview .widget-list strong,.dashboard-overview .dashboard-review-row-meta>strong{font-size:11px}.dashboard-overview .widget-list small{font-size:10px}.dashboard-overview .widget-list .badge{font-size:9px}.dashboard-overview .dashboard-metric-context{gap:10px}}
+
+.dashboard-overview .widget-activity span{overflow-wrap:anywhere;text-align:right}
+.dashboard-overview .chart-empty{min-height:143px;display:flex;align-items:center;font-size:11px;color:#8792a2}
+
+/* Figma node 4:7: replay the entry at 2x speed (350 ms) per metric/currency change.
+   Source tracks and export: design/ola-metric-motion.json. */
+.dashboard-overview .dashboard-metric-readout{animation:ola-metric-enter 350ms cubic-bezier(.16,1,.3,1) both;animation-iteration-count:1}
+@keyframes ola-metric-enter{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.dashboard-overview .dashboard-metric-readout{animation:none;opacity:1;transform:none}}
