@@ -1,0 +1,47 @@
+/* Persistent transaction actions stay available while reviewing the evidence. */
+.page-case{padding-bottom:185px}
+.transaction-details .persistent-review-panel{position:static;order:-1;margin:0 0 30px;padding:0 0 24px;max-width:none;border:0;border-bottom:1px solid #e7ebef;border-radius:0;background:#fff;box-shadow:none}
+.transaction-details .persistent-review-panel h2{margin:0 0 18px;font-size:18px;line-height:1.3;font-weight:600;color:#30313d;letter-spacing:-.25px}
+.persistent-review-panel .review-amount-summary{margin:0 0 18px;padding:0 0 15px;border-bottom:1px solid #e7ebef}
+.review-amount-summary>div{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 9px}
+.review-amount-summary>div:last-child{margin-bottom:0}
+.review-amount-summary dt{font-size:11px;color:#687385}
+.review-amount-summary dd{margin:0;text-align:right;font-size:12px;font-weight:550;color:#30313d;white-space:nowrap}
+.review-amount-summary dd>span{font-weight:400;color:#687385;font-size:10px}
+.persistent-review-panel .approval-guidance{margin:0 0 18px;color:#687385;font-size:11px;line-height:1.55}
+.persistent-review-panel .candidate-select{margin:0 0 17px}
+.persistent-review-panel .candidate-select label,.persistent-review-panel .note-label{margin-bottom:7px;font-size:11px;color:#414552;font-weight:550}
+.persistent-review-panel .candidate-select label>span{font-size:10px;font-weight:400;color:#8792a2}
+.persistent-review-panel .candidate-select select{min-height:34px;border-color:#d9dde4;background:#fff}
+.persistent-review-panel textarea{display:block;min-height:94px;border-color:#d9dde4;border-radius:5px;background:#fff;font-size:11px;line-height:1.55}
+.review-field-help{font-size:10px;line-height:1.45;color:#8792a2;margin:6px 0 0}
+.persistent-review-panel .verification-checkbox{padding:0;margin:16px 0 0;gap:8px;border:0;border-radius:0;background:#fff;color:#596579;font-size:11px;line-height:1.55}
+.persistent-review-panel .verification-checkbox input{width:14px;height:14px;margin:2px 0 0;accent-color:#635bff}
+.persistent-review-panel .smallprint{margin:18px 0 0;text-align:left;font-size:10px;line-height:1.55;color:#8792a2}
+.persistent-review-panel .resolved-note{background:#f3faee;border:1px solid #dcecd3;font-size:11px;line-height:1.55;padding:10px;margin:0 0 15px}
+.persistent-review-panel .resolved-note.caution{background:#fff9eb;border-color:#eddfb7;color:#9b6a18}
+.persistent-review-panel .role-hint{margin-bottom:16px;font-size:11px}
+.approval-action-bar{position:fixed;z-index:24;bottom:33px;left:240px;right:0;display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:86px;padding:16px 40px;background:#fff;border-top:1px solid #dce1e7;box-shadow:0 -3px 12px #30313d07}
+.approval-transaction-summary{display:grid;gap:5px;min-width:125px;flex:none}
+.approval-transaction-summary>strong{font-size:16px;line-height:1.25;font-weight:650;letter-spacing:-.2px;color:#30313d}
+.approval-transaction-summary>strong>span{font-size:12px;font-weight:400;color:#687385;letter-spacing:0;margin-left:2px}
+.approval-transaction-summary>span{font-size:11px;line-height:1.4;color:#687385}
+.approval-readiness{display:flex;align-items:center;gap:10px;min-width:0;margin-left:auto;color:#687385}
+.approval-readiness-icon{display:grid;place-items:center;flex:none;color:#8792a2}
+.approval-readiness>div{min-width:0}
+.approval-readiness strong{display:block;font-size:12px;font-weight:550;line-height:1.4;color:#414552}
+.approval-readiness p{font-size:10px;color:#687385;line-height:1.45;margin:4px 0 0;max-width:335px}
+.approval-readiness.is-ready .approval-readiness-icon{color:#43862c}
+.approval-bar-actions{display:flex;align-items:center;gap:9px;flex:none}
+.approval-bar-actions .button{min-height:37px;padding:8px 13px;border-radius:5px;font-size:12px;font-weight:550}
+.approval-bar-actions .button.primary{min-width:142px;font-weight:600;background:#635bff;border-color:#635bff;color:#fff;box-shadow:0 1px 3px #30313d12}
+.approval-bar-actions .button.primary:hover:not(:disabled){background:#5349e8;border-color:#5349e8}
+.approval-bar-actions .button:disabled{cursor:not-allowed;opacity:1;background:#f5f6f8;border-color:#e1e5eb;color:#a2aab6;box-shadow:none}
+.approval-bar-actions .button.primary:disabled{background:#eeecff;border-color:#eeecff;color:#aaa4e5}
+.approval-bar-actions .button:focus-visible{outline:2px solid #635bff;outline-offset:3px}
+.app-shell:has(.approval-action-bar) .toast{bottom:136px}
+@media(min-width:1600px){.approval-action-bar{left:260px;padding-left:44px;padding-right:44px}}
+@media(max-width:1150px){.approval-action-bar{left:210px;padding-left:27px;padding-right:27px;gap:17px}.approval-readiness p{max-width:240px}}
+@media(max-width:1000px){.transaction-details .persistent-review-panel{padding:0 0 23px;margin:0 0 5px}.approval-action-bar{flex-wrap:wrap;gap:13px 20px}.approval-transaction-summary{margin-right:auto}.approval-readiness{order:2;flex:1 1 100%;margin:0;gap:8px}.approval-readiness p{max-width:none}.approval-readiness strong{font-size:11px}.approval-readiness p{font-size:10px;margin-top:2px}.approval-readiness-icon svg{width:16px;height:16px}.approval-bar-actions{margin-left:auto}.page-case{padding-bottom:215px}.app-shell:has(.approval-action-bar) .toast{bottom:170px}}
+@media(max-width:760px){.approval-action-bar{left:0;bottom:30px;padding:13px 16px;gap:13px 16px}.approval-bar-actions .button{min-height:38px;padding:8px 11px;font-size:11px}.approval-bar-actions .button.primary{min-width:133px}.approval-transaction-summary>strong{font-size:15px}.approval-transaction-summary>span{font-size:10px}.page-case{padding-bottom:220px}.transaction-details .persistent-review-panel h2{font-size:17px}.app-shell:has(.approval-action-bar) .toast{bottom:172px}}
+@media(max-width:420px){.approval-action-bar{gap:12px}.approval-transaction-summary{min-width:105px}.approval-bar-actions{gap:6px}.approval-bar-actions .button{padding:8px 9px;min-height:37px;font-size:10px}.approval-bar-actions .button.primary{min-width:116px;gap:4px}.approval-bar-actions .button.primary svg{width:14px;height:14px}.approval-transaction-summary>strong{font-size:14px}.approval-transaction-summary>strong>span{font-size:10px}.approval-readiness p{font-size:10px}.page-case{padding-bottom:235px}}

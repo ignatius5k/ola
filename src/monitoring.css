@@ -1,0 +1,17 @@
+.monitoring-panel{display:grid;gap:20px}
+.monitor-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.monitor-grid>div{padding:16px;border:1px solid #e1e5eb;border-radius:7px;background:#fafbfc}
+.monitor-label{display:block;margin-bottom:8px;color:#697586;font-size:10px;font-weight:650;letter-spacing:.08em;text-transform:uppercase}
+.monitor-grid strong{display:block;color:#30313d;font-size:13px}
+.monitor-grid p,.monitor-trace p,.coach-notes p{color:#687385;font-size:11px;line-height:1.55}
+.monitor-grid small,.coach-entry small{color:#697586;font-size:10px}
+.monitor-trace h3,.coach-notes h3{margin:0 0 9px;color:#30313d;font-size:13px}
+.monitor-trace ol{margin:0;padding-left:20px;color:#424b58;font-size:11px;line-height:1.8}
+.monitor-trace p{margin-bottom:0}
+.coach-notes{border-top:1px solid #e1e5eb;padding-top:18px}
+.coach-notes label{display:block;margin:14px 0 6px;color:#424b58;font-size:11px;font-weight:600}
+.coach-notes textarea{display:block;width:100%;box-sizing:border-box;resize:vertical;padding:10px 12px;border:1px solid #d4ddd2;border-radius:5px;font:inherit;font-size:11px}
+.coach-notes button{margin-top:9px}
+.coach-entry{padding:10px 12px;margin:9px 0;border-left:3px solid #635bff;background:#f8f7ff}
+.coach-entry p{margin:0 0 5px;color:#424b58}
+@media(max-width:700px){.monitor-grid{grid-template-columns:1fr}}

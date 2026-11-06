@@ -4,8 +4,21 @@ export const RULE_SETTINGS = Object.freeze({
   maxPostingDelayMinutes: 30,
   nearbyCandidateWindowMinutes: 30,
   feeExplanationTolerance: 0.001,
-  reviewerMatchCategories: Object.freeze(['fee', 'reference'])
+  largeTransactionThresholds: Object.freeze({ SGD: 10000, USD: 10000 }),
+  reviewerMatchCategories: Object.freeze(['fee', 'reference', 'high-value'])
 });
+
+export function largeTransactionThreshold(currency, settings = RULE_SETTINGS) {
+  const threshold = settings.largeTransactionThresholds?.[currency];
+  return Number.isFinite(threshold) && threshold > 0 ? threshold : null;
+}
+
+export function getAmountReview(collection, settings = RULE_SETTINGS) {
+  const threshold = largeTransactionThreshold(collection.currency, settings);
+  return threshold !== null && collection.amount >= threshold
+    ? { required: true, amount: collection.amount, currency: collection.currency, threshold }
+    : null;
+}
 
 export const AUTO_MATCH_RULES = Object.freeze([
   {
@@ -37,6 +50,15 @@ export const AUTO_MATCH_RULES = Object.freeze([
     label: 'Within the posting window',
     description: settings => `The posting must be within ${settings.maxPostingDelayMinutes} minutes of collection.`,
     test: ({ delayMinutes }, settings) => delayMinutes <= settings.maxPostingDelayMinutes
+  },
+  {
+    id: 'large-transaction-review',
+    label: 'Below the human verification threshold',
+    description: settings => `Transactions at or above ${Object.entries(settings.largeTransactionThresholds || {}).map(([currency, threshold]) => `${currency} ${threshold.toLocaleString('en-SG')}`).join(' or ')} require reviewer verification. Currencies without a configured threshold cannot close automatically. These are demo policy thresholds.`,
+    test: ({ collection }, settings) => {
+      const threshold = largeTransactionThreshold(collection.currency, settings);
+      return threshold !== null && Number.isFinite(collection.amount) && collection.amount < threshold;
+    }
   }
 ]);
 
