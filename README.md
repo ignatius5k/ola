@@ -29,6 +29,14 @@ npm run preview -- --port 8766
 
 Run the matching-engine tests with `npm test`.
 
+## Database foundation (SCRUM-39)
+
+The repository includes the teammate's PostgreSQL/Supabase schema, immutable sources, workspace permissions, seed data and database tests. The React prototype still uses its synthetic arrays and browser storage; connecting it to authenticated APIs belongs to the later implementation steps.
+
+Run the disposable SQL tests on this machine with `npm run db:verify:embedded`. This needs Node/npm only and uses a small Supabase Auth/Storage shim. With Docker installed, use `npm run db:start`, `npm run db:reset` and `npm run db:test` for the full local Supabase database checks. Reset clears the local test database and reloads its synthetic seed.
+
+See [data model](docs/data-model.md) and [integration test evidence](docs/scrum39-integration.md) for scope, commands and remaining verification.
+
 ## Demo walkthrough
 
 1. **Home:** Review the batch summary. Seven of 24 synthetic collections match automatically; 17 require review or additional evidence. Select **Run check again** to watch the batch playback at 0.75 seconds per record. Use **Pause** and **Resume** to inspect an outcome.
@@ -41,13 +49,17 @@ Each case now includes **Monitoring & guardrails** below the investigation playb
 
 The contextual **Back** button returns to the originating Home, Transactions, Reviews, or Activity page. It restores the list search, filters, selected rows, and scroll position.
 
-Reviewer decisions and activity are stored in your browser's `localStorage`. They persist across refreshes in the same browser profile. Reset them from the app when repeating the demo.
+Analyst handoffs, Reviewer decisions, and activity are stored in your browser's `localStorage`. They persist across refreshes in the same browser profile. Reset them from the app when repeating the demo.
 
 ### Dashboard metrics
 
-Home opens with **Amount requiring review**. Select the dropdown arrow beside the metric name to switch to **Collection volume** or **Matched amount**. The amount, record count, chart, and destination link update together for the selected currency. The X axis shows collection time in Singapore time; the Y axis shows cumulative amount in the selected currency. These charts group the current matching results by collection time.
+Home opens with the selected role's actionable demo queue count, a short breakdown, and a link to the same cases. Select the dropdown arrow beside the metric name to switch to **Unresolved amount**, **Collection volume**, or **Matched amount**. These monetary views update the amount, record count, chart, and destination link together for the selected currency. The X axis shows collection time in Singapore time; the Y axis shows cumulative amount in the selected currency.
 
-The **Next review** card opens an unresolved transaction. Supporting cards show review reasons, large transactions awaiting verification, recent activity, and the reconciliation summary.
+The role selector changes the starting view within the existing layout. **Analyst** sees an unresolved work queue and a next investigation; **Reviewer** sees Analyst submissions first, followed by other eligible demo decision candidates. Both roles open the same case evidence. The three monetary metrics remain currency-specific and shared across roles; the amount and chart use integer cents for aggregation. See [dashboard metric definitions](docs/metrics.md).
+
+### Clickable Analyst → Reviewer handoff
+
+In **Analyst**, open `COL-1013` (Civic Supplies). Compare the fee and source records, choose `LED-5004` in **Investigation handoff**, summarize the evidence, and select **Send for review**. The case leaves the Analyst work queue and appears first in the Reviewer queue. Switch the demo role selector to **Reviewer**. The case shows the Analyst's proposed posting and summary beside the existing evidence and independent decision form. Enter a reason to **Return for evidence**, or independently choose the posting and **Approve match**. A returned case appears first for the Analyst, with the Reviewer's request; the Analyst can revise and resubmit it. These handoffs are local prototype state, not authenticated submissions or messages to another user.
 
 Metric and currency changes replay a 350 ms fade and 4 px entry authored in [Figma Motion](https://www.figma.com/design/LdlcNV4FoSqisMaepkRoue?node-id=4-7). Reduced-motion preferences disable the transition. The motion export is recorded in `design/ola-metric-motion.json`. Chart lines draw over 0.9 seconds, with animated axis labels. Select **Replay** beside the chart to repeat the animation.
 
@@ -70,7 +82,7 @@ The editable policy is in [`src/rules.js`](src/rules.js). Every automatic rule m
 5. The posting is within the configured time window.
 6. The amount is below the configured human verification threshold for its currency.
 
-The default posting window is **30 minutes for this demo**; it is not a universal banking standard. `RULE_SETTINGS` also controls nearby-candidate search, fee explanation tolerance, which case categories allow a reviewed match, and the per-currency large transaction thresholds. The matching logic is in [`src/engine.js`](src/engine.js). The broader investigation controls and their implementation status are documented in [`BANKING_RULE_CRITERIA.md`](BANKING_RULE_CRITERIA.md).
+The default posting window is **30 minutes for this demo**; it is not a universal banking standard. `RULE_SETTINGS` also controls nearby-candidate search, which case categories allow a reviewed match, and the per-currency large transaction thresholds. Fees must explain the difference exactly in cents. The matching logic is in [`src/engine.js`](src/engine.js). The broader investigation controls and their implementation status are documented in [`BANKING_RULE_CRITERIA.md`](BANKING_RULE_CRITERIA.md).
 
 ## Large transaction verification
 

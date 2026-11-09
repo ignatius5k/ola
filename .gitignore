@@ -3,6 +3,9 @@ dist/
 .DS_Store
 *.log
 *.local
+.env
+.env.*
+!.env.example
 *-preview.png
 preview.png
 mobile-preview.png

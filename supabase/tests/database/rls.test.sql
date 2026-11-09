@@ -21,10 +21,10 @@ insert into public.workspace_members (workspace_id, user_id, role, active) value
   ('b0000000-0000-4000-8000-0000000000b1','aaaaaaaa-0000-4000-8000-000000000004','analyst',true);
 insert into public.profiles (user_id, display_name) values
   ('aaaaaaaa-0000-4000-8000-000000000001','Analyst X'),('aaaaaaaa-0000-4000-8000-000000000004','Analyst Y');
-insert into public.import_batches (id, workspace_id, source_system, origin, kind) values
-  ('c0000000-0000-4000-8000-000000000001','b0000000-0000-4000-8000-0000000000a1','sys','seed','collection'),
-  ('c0000000-0000-4000-8000-000000000002','b0000000-0000-4000-8000-0000000000a1','sys','seed','ledger'),
-  ('c0000000-0000-4000-8000-000000000011','b0000000-0000-4000-8000-0000000000b1','sys','seed','collection');
+insert into public.import_batches (id, workspace_id, source_system, origin, kind, file_object_path) values
+  ('c0000000-0000-4000-8000-000000000001','b0000000-0000-4000-8000-0000000000a1','sys','seed','collection','b0000000-0000-4000-8000-0000000000a1/c0000000-0000-4000-8000-000000000001/original.csv'),
+  ('c0000000-0000-4000-8000-000000000002','b0000000-0000-4000-8000-0000000000a1','sys','seed','ledger',null),
+  ('c0000000-0000-4000-8000-000000000011','b0000000-0000-4000-8000-0000000000b1','sys','seed','collection','b0000000-0000-4000-8000-0000000000b1/c0000000-0000-4000-8000-000000000011/original.csv');
 insert into public.collections (id, workspace_id, import_batch_id, source_system, source_record_id, reference, counterparty, amount_minor, currency, recorded_at, channel, source_hash, raw_payload) values
   ('d0000000-0000-4000-8000-000000000001','b0000000-0000-4000-8000-0000000000a1','c0000000-0000-4000-8000-000000000001','sys','COL-X1','REF-1','Acme',12500,'SGD','2026-10-23T09:00:00+08','PayNow QR',repeat('a',64),'{}'),
   ('d0000000-0000-4000-8000-000000000011','b0000000-0000-4000-8000-0000000000b1','c0000000-0000-4000-8000-000000000011','sys','COL-Y1','REF-9','Globex',9900,'SGD','2026-10-23T09:00:00+08','PayNow QR',repeat('b',64),'{}');
@@ -57,8 +57,10 @@ end $$;
 insert into storage.objects (bucket_id, name) values
   ('evidence', 'b0000000-0000-4000-8000-0000000000a1/f0000000-0000-4000-8000-000000000001/f1000000-0000-4000-8000-000000000001'),
   ('evidence', 'b0000000-0000-4000-8000-0000000000b1/f0000000-0000-4000-8000-000000000011/f1000000-0000-4000-8000-000000000011'),
+  ('originals','b0000000-0000-4000-8000-0000000000a1/c0000000-0000-4000-8000-000000000001/original.csv'),
+  ('originals','b0000000-0000-4000-8000-0000000000b1/c0000000-0000-4000-8000-000000000011/original.csv'),
   ('originals','b0000000-0000-4000-8000-0000000000a1/c0000000-0000-4000-8000-0000000000f2/original.csv'),
-  ('originals','b0000000-0000-4000-8000-0000000000b1/c0000000-0000-4000-8000-0000000000f3/original.csv');
+  ('evidence','b0000000-0000-4000-8000-0000000000a1/f0000000-0000-4000-8000-000000000001/f1000000-0000-4000-8000-0000000000f2');
 
 -- 1. Unauthenticated (anon) -------------------------------------------------------------------------
 reset role; set local role anon;
@@ -71,7 +73,7 @@ select throws_ok($$select count(*) from public.workspace_members$$, '42501', nul
 select throws_ok($$select count(*) from public.collection_read$$, '42501', null, 'anon cannot read collection_read');
 select throws_ok($$select * from app.member_workspace_ids()$$, '42501', null, 'anon cannot reach app helpers');
 select is(public.tap_blocked($q$insert into public.workspaces (name, active_rule_version) values ('evil','demo-1')$q$), true, 'anon cannot create a workspace');
-select is((select count(*) from storage.objects where bucket_id='evidence')::int, 0, 'anon sees no storage objects');
+select is(public.tap_blocked($q$select * from storage.objects where bucket_id='evidence'$q$), true, 'anon sees no storage objects (denied or RLS-filtered)');
 
 -- authenticated non-member ---------------------------------------------------------------
 reset role; set local role authenticated; select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-4000-8000-000000000005","role":"authenticated"}', true);
@@ -186,6 +188,8 @@ select is(public.tap_blocked($q$insert into storage.objects (bucket_id, name) va
 select is(public.tap_blocked($q$insert into storage.objects (bucket_id, name) values ('originals','b0000000-0000-4000-8000-0000000000a1/c0000000-0000-4000-8000-0000000000f9/original.csv')$q$), true, 'clients cannot write originals (server only)');
 select is((select count(*) from storage.objects where bucket_id='originals' and name like 'b0000000-0000-4000-8000-0000000000b1/%')::int, 0, 'originals of workspace Y are not readable');
 select is((select count(*) from storage.objects where bucket_id='originals' and name like 'b0000000-0000-4000-8000-0000000000a1/%')::int, 1, 'originals of workspace X are readable');
+select is((select count(*) from storage.objects where name like '%0000000000f2%')::int, 0, 'same-workspace orphan originals and evidence are hidden');
+select is((select count(*) from storage.objects where bucket_id='evidence' and name='b0000000-0000-4000-8000-0000000000a1/f0000000-0000-4000-8000-000000000001/f1000000-0000-4000-8000-000000000001')::int, 1, 'attached evidence is readable');
 select is(public.tap_blocked($q$update storage.objects set name = name || 'x' where bucket_id='evidence'$q$), true, 'objects cannot be overwritten/renamed by clients');
 select is(public.tap_blocked($q$delete from storage.objects where bucket_id='evidence'$q$), true, 'objects cannot be deleted by clients');
 

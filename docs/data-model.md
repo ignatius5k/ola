@@ -4,9 +4,9 @@ Supabase PostgreSQL schema for Ola: immutable source records, workspace isolatio
 transactional control primitives. Baseline prototype commit `a89c2ed`; parent SCRUM-36; spec revision `263e66a869f9` (2026-11-06).
 Browser `localStorage` is **not** migrated as trusted server data.
 
-- Migrations: `supabase/migrations/` (6 files, applied in order)
+- Migrations: `supabase/migrations/` (7 files, applied in order)
 - Seed: `supabase/seed.sql` â€” **generated** from `src/data.js` by `npm run db:seed:generate`
-- Tests: `supabase/tests/database/{schema,rls,seed}.test.sql` (pgTAP, 257 assertions)
+- Tests: `supabase/tests/database/{history,schema,rls,seed}.test.sql` (pgTAP, 268 assertions)
 - Generated types: `src/db/database.types.ts` (`npm run db:types`)
 - CLI: `supabase@3.0.0`, pinned exactly in `devDependencies` (commands below were taken from that version's `--help`)
 
@@ -18,6 +18,7 @@ Browser `localStorage` is **not** migrated as trusted server data.
 | `20261109083034_transaction_primitives` | immutability/integrity triggers, `app.*` transaction primitives |
 | `20261109083036_security_rls_storage` | grants, RLS, membership helpers, read views, private storage buckets + policies |
 | `20261109190000_foreign_key_indexes` | indexes for all 22 foreign-key relationships identified by Supabase Database Advisors |
+| `20261109190001_align_project_contracts` | canonical workflow states, current policy version, same-case history references, exclusive allocation origins and attached-object reads |
 
 ## Schema diagram
 
@@ -58,7 +59,7 @@ reference is only valid for an actual member of the same workspace. Membership r
 | Source hash | `source_hash` = SHA-256 of canonical JSON (fixed key order, UTC instant, amounts as minor-unit strings) â€” see `scripts/generate-seed.mjs`. The DB checks only its format. |
 | Snapshot capture | `submissions.source_snapshot` is built by a `BEFORE INSERT` trigger from the case's collection and `proposed_ledger_id` (id, source id, hash). Caller-supplied keys cannot override the captured ones. `evidence_ids` holds attachment UUIDs only and may be empty. |
 | Allocation | Partial unique indexes: one active (`released_at IS NULL`) allocation per `(workspace, ledger)` and per `(workspace, case)`. |
-| Policy | `policy_versions` immutable; `sha256` is verified by a `CHECK` over `settings::text`. Settings mirror `RULE_SETTINGS` in `src/rules.js` (thresholds in major units as the engine reads them). |
+| Policy | `policy_versions` immutable; `sha256` is verified by a `CHECK` over `settings::text`. `SCRUM-9-v1` mirrors current `RULE_SETTINGS` in `src/rules.js`. Historical `demo-1` remains unchanged; existing workspaces retain their active version, while fresh seed selects `SCRUM-9-v1`. |
 | Pre-commit run events | `run_events` are diagnostic/provisional. Only a `completed` run (terminal) has applied outcomes. |
 
 ### Immutability (enforced for everyone, including `service_role` and the table owner)
@@ -91,7 +92,7 @@ The `app` schema is not in the PostgREST exposed schemas. **Routines SCRUM-42 ad
 
 Private buckets `originals` (text/csv) and `evidence`. Paths: `<workspaceUUID>/<importUUID>/original.csv` (enforced on
 `import_batches.file_object_path`) and `<workspaceUUID>/<caseUUID>/<objectUUID>` (enforced on `evidence.object_path`; the object UUID is `evidence.id`).
-Clients can read their workspace's objects; analysts can **insert** evidence objects for a case in their workspace; nobody on the client
+Clients can read objects attached to their workspace's import/evidence metadata; same-workspace orphan objects are hidden. Analysts can **insert** evidence objects for a case in their workspace; nobody on the client
 side has UPDATE/DELETE, so objects are never overwritten or removed. Originals are written by the server only.
 Storage and PostgreSQL are not one transaction: archive the CSV after full validation and **before** the business-row commit; a failed
 commit can leave an unattached object that authorised cleanup (service role) removes.
@@ -119,7 +120,7 @@ Generated TypeScript types: `src/db/database.types.ts`.
 
 ## Provisional / assumed (please confirm)
 
-1. **`cases.category` and `cases.workflow_status` value lists** are derived from the prototype engine, because the SCRUM-38 state machine was not in the spec. They are `CHECK`s (`cases_category_provisional`, `cases_workflow_status_provisional`); replace them in one migration when SCRUM-38 constants are final. Likewise the `submission_status` and `decision_outcome` enums.
+1. **Case state vocabulary** now matches `shared/domain.js`; categories include the engine's `invalid` evidence outcome. The compatibility migration converts legacy `new`/`needs_review` to `open`, `submitted` to `awaiting_review`, and `reviewed_match` to `verified`, incrementing case versions and recording each conversion. SCRUM-38 still owns transition rules; the `submission_status` and `decision_outcome` enums remain foundation assumptions.
 2. `import_batches.origin` (`csv_import|manual|seed`) is an **added column**: the spec makes `file_object_path` required for user CSV imports but nullable for seed/manual, which needs a discriminator. `import_batches.status` is `accepted|rejected`.
 3. `unique(workspace_id, case_id, case_version)` on `submissions` (one submission per case version) and `unique(submission_id)` on `decisions` (one decision per submission) interpret â€œversioned submissionsâ€.
 4. `ledger_postings.counterparty/channel` are nullable (ledger exports do not carry them); on `collections` they are required.
@@ -145,19 +146,19 @@ not idempotent and is not meant to be re-run on a populated database (it will fa
 history and source rows are immutable by design, the *only* supported way to clear data is a reset (or dropping the database).
 The seed creates workspace **Ola Demo**, two **placeholder** auth identities (`bootstrap-analyst@ola.local`, `bootstrap-reviewer@ola.local`;
 no password â€” SCRUM-40 replaces them with invited users), 24 collections, 24 ledger postings in the initial batch, `LED-5009` in a
-separate *later* batch, 24 cases (`workflow_status='new'`, `creator_id` null = trusted system creation) and 3 system audit events.
+separate *later* batch, 24 cases (`workflow_status='open'`, `creator_id` null = trusted system creation) and 3 system audit events.
 The later batch is seeded but **unprocessed**: no run references it and no case or allocation points at it. Seeded batches have
 `origin='seed'` and `file_object_path` NULL; `file_sha256` is the hash of the matching file in `public/mock-data/`.
 
 ## Verification
 
 Run `npm run db:reset && npm run db:test && npm run db:advisors` on a machine with Docker. Where Docker is unavailable,
-`scripts/verify-plain-postgres.sh` replays migrations + seed + the same pgTAP files on a throw-away PostgreSQL 16 with a small Supabase shim
-(`scripts/supabase-shim.sql`); it is a fallback, **not** a replacement for the real local stack. Captured output is in `docs/evidence/`.
+`scripts/verify-plain-postgres.sh` replays migrations + seed + the same pgTAP files on a throw-away PostgreSQL cluster with a small Supabase shim
+(`scripts/supabase-shim.sql`). On Windows without Docker/PostgreSQL, `npm run db:verify:embedded` runs them on disposable PGlite PostgreSQL 18.6, verifies the legacy upgrade, and compares roles/statuses/policy to shared JavaScript contracts. These fallbacks do not exercise real Supabase services or concurrent sessions. Current output is [database-embedded-output.txt](evidence/database-embedded-output.txt); see [integration evidence and limitations](scrum39-integration.md).
 
 ### Security advisor review
 
-`supabase db advisors --type all` (CLI 3.0.0, run against the migrated schema via `--remote=<url>`):
+The table below and `database-advisors-raw.json` are the teammate's captured advisor results for the six upstream migrations. Advisors have not been rerun on the integrated seven-migration schema because Docker is unavailable on this machine. The integration received a separate source review and SQL regression tests.
 
 | Finding | Resolution |
 |---|---|
@@ -208,7 +209,7 @@ Run `npm run db:reset && npm run db:test && npm run db:advisors` on a machine wi
 | `workspace_id` | uuid | no |  |
 | `collection_id` | uuid | no |  |
 | `category` | text | yes |  |
-| `workflow_status` | text | no | `'new'::text` |
+| `workflow_status` | text | no | `'open'::text` |
 | `assigned_analyst_id` | uuid | yes |  |
 | `creator_id` | uuid | yes |  |
 | `version` | int4 | no | `1` |

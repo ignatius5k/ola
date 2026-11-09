@@ -1,4 +1,5 @@
-
+// SCRUM-39 generated baseline; relationship metadata aligned with migration
+// 20261109190001. Regenerate with npm run db:types on the full local stack.
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
@@ -119,16 +120,16 @@ isOneToOne: false
                   Relationships: [
                     {
       foreignKeyName: "cases_last_submission_fk"
-      columns: ["workspace_id","last_submission_id"]
+      columns: ["workspace_id","id","last_submission_id"]
 isOneToOne: false
       referencedRelation: "submission_read"
-      referencedColumns: ["workspace_id","id"]
+      referencedColumns: ["workspace_id","case_id","id"]
     },{
       foreignKeyName: "cases_last_submission_fk"
-      columns: ["workspace_id","last_submission_id"]
+      columns: ["workspace_id","id","last_submission_id"]
 isOneToOne: false
       referencedRelation: "submissions"
-      referencedColumns: ["workspace_id","id"]
+      referencedColumns: ["workspace_id","case_id","id"]
     },{
       foreignKeyName: "cases_workspace_id_assigned_analyst_id_fkey"
       columns: ["workspace_id","assigned_analyst_id"]
@@ -219,16 +220,16 @@ isOneToOne: false
       referencedColumns: ["workspace_id","user_id"]
     },{
       foreignKeyName: "decisions_workspace_id_submission_id_fkey"
-      columns: ["workspace_id","submission_id"]
+      columns: ["workspace_id","case_id","submission_id"]
 isOneToOne: false
       referencedRelation: "submission_read"
-      referencedColumns: ["workspace_id","id"]
+      referencedColumns: ["workspace_id","case_id","id"]
     },{
       foreignKeyName: "decisions_workspace_id_submission_id_fkey"
-      columns: ["workspace_id","submission_id"]
+      columns: ["workspace_id","case_id","submission_id"]
 isOneToOne: false
       referencedRelation: "submissions"
-      referencedColumns: ["workspace_id","id"]
+      referencedColumns: ["workspace_id","case_id","id"]
     }
                   ]
                 },"evidence": {
@@ -329,10 +330,10 @@ isOneToOne: false
       referencedColumns: ["workspace_id","id"]
     },{
       foreignKeyName: "ledger_allocations_workspace_id_decision_id_fkey"
-      columns: ["workspace_id","decision_id"]
+      columns: ["workspace_id","case_id","decision_id"]
 isOneToOne: false
       referencedRelation: "decisions"
-      referencedColumns: ["workspace_id","id"]
+      referencedColumns: ["workspace_id","case_id","id"]
     },{
       foreignKeyName: "ledger_allocations_workspace_id_ledger_id_fkey"
       columns: ["workspace_id","ledger_id"]

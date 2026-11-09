@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { addManualTransaction, analyse, canReviewMatch, createInitialState, getCases, getCollections, getLedger, recordDecision, runBatch } from './engine.js';
+import { addManualTransaction, analyse, buildLedgerIndex, canReviewMatch, createInitialState, getCases, getCollections, getLedger, recordDecision, runBatch } from './engine.js';
 import { RULE_SETTINGS, evaluateAutoRules, ruleDescriptions } from './rules.js';
 
 test('only unambiguous exact-value cases auto-match', () => {
@@ -29,9 +29,10 @@ test('late ledger row resolves only after the next reconciliation run', () => {
 });
 
 test('review decisions remain in place when a batch is rerun', () => {
-  const initial = createInitialState();
-  initial.decisions['COL-1012'] = { status: 'Reviewed match', ledgerId: 'LED-5002', note: 'Checked original source.' };
-  assert.equal(getCases(runBatch(initial)).find(item => item.id === 'COL-1012').status, 'Reviewed match');
+  const approved = recordDecision({ ...createInitialState(), role: 'Reviewer' }, {
+    caseId: 'COL-1013', status: 'Reviewed match', ledgerId: 'LED-5004', note: 'Checked the recorded fee against the source.'
+  });
+  assert.equal(getCases(runBatch(approved)).find(item => item.id === 'COL-1013').status, 'Reviewed match');
 });
 
 test('editing the posting window changes automatic matching and the displayed rule', () => {
@@ -48,7 +49,7 @@ test('editing the posting window changes automatic matching and the displayed ru
 
 test('all automatic rule predicates must pass', () => {
   const collection = { reference: 'X', amount: 50, currency: 'SGD' };
-  const row = { reference: 'X', amount: 50, currency: 'SGD', type: 'credit' };
+  const row = { reference: 'X', amount: 50, currency: 'SGD', type: 'credit', fee: 0 };
   assert.equal(evaluateAutoRules({ collection, row, exactReference: [row], delayMinutes: 3 }).every(rule => rule.passed), true);
   assert.equal(evaluateAutoRules({ collection, row: { ...row, type: 'reversal' }, exactReference: [row], delayMinutes: 3 }).find(rule => rule.id === 'credit-only').passed, false);
   assert.equal(evaluateAutoRules({ collection, row, exactReference: [row, row], delayMinutes: 3 }).find(rule => rule.id === 'unique-reference').passed, false);
@@ -79,6 +80,8 @@ test('large transaction thresholds are inclusive and configured per currency', (
   const euro = matchingRecords(200, 'EUR');
   assert.equal(analyse(euro.collection, [euro.row], settings).category, 'policy');
   assert.equal(analyse(euro.collection, [euro.row], settings).autoLedgerId, null);
+  const roundedBoundary = matchingRecords(9999.999999999);
+  assert.equal(analyse(roundedBoundary.collection, [roundedBoundary.row]).category, 'high-value');
 });
 
 test('large amount flags do not replace other exception blockers', () => {
@@ -102,6 +105,91 @@ test('large amount flags do not replace other exception blockers', () => {
   }
   const reversedNearby = analyse(collection, [{ ...row, reference: 'OTHER', type: 'reversal' }]);
   assert.equal(canReviewMatch(reversedNearby), false);
+  const chargedNearby = analyse(collection, [{ ...row, reference: 'OTHER', fee: 1 }]);
+  assert.equal(canReviewMatch(chargedNearby), false);
+});
+
+test('early, invalid, and ambiguous evidence cannot close automatically', () => {
+  const { collection, row } = matchingRecords(500);
+  const cases = [
+    { ledger: [{ ...row, time: '2026-10-23T13:29:00+08:00' }], category: 'timing' },
+    { ledger: [{ ...row, amount: 500.001 }], category: 'invalid' },
+    { ledger: [{ ...row, fee: 0.001 }], category: 'invalid' },
+    { ledger: [{ ...row, time: 'not-a-time' }], category: 'invalid' },
+    { ledger: [{ ...row, time: '2026-10-23T13:32:00' }], category: 'invalid' },
+    { ledger: [{ ...row, time: '2026-02-30T13:32:00+08:00' }], category: 'invalid' },
+    { ledger: [row, { ...row, id: 'LED-SECOND' }], category: 'duplicate' }
+  ];
+  for (const { ledger, category } of cases) {
+    const direct = analyse(collection, ledger);
+    const indexed = analyse(collection, ledger, RULE_SETTINGS, buildLedgerIndex(ledger));
+    assert.equal(direct.category, category);
+    assert.equal(indexed.category, category);
+    assert.equal(direct.autoLedgerId, null);
+    assert.equal(canReviewMatch(direct), false);
+  }
+  assert.equal(analyse({ ...collection, amount: 500.001 }, [row]).category, 'invalid');
+  assert.equal(analyse({ ...collection, time: 'invalid' }, [row]).category, 'invalid');
+  assert.equal(analyse({ ...collection, time: '2026-10-23T13:30:00' }, [row]).category, 'invalid');
+});
+
+test('approval audit preserves evidence and reopens when policy changes', () => {
+  const initial = { ...createInitialState(), role: 'Reviewer' };
+  const approved = recordDecision(initial, { caseId: 'COL-1019', status: 'Reviewed match', ledgerId: 'LED-5010', note: 'Source and amount checked.', verifiedLargeAmount: true });
+  const approval = approved.audit.find(event => event.caseId === 'COL-1019' && event.action === 'Reviewed match');
+  assert.equal(approval.evidence.posting.id, 'LED-5010');
+  assert.equal(approval.evidence.policy.largeTransactionThreshold, 10000);
+  assert.equal(getCases(approved).find(item => item.id === 'COL-1019').status, 'Reviewed match');
+  const changed = { ...RULE_SETTINGS, largeTransactionThresholds: { SGD: 5000, USD: 10000 } };
+  const rerun = runBatch(approved, changed);
+  const item = getCases(rerun, changed).find(candidate => candidate.id === 'COL-1019');
+  assert.equal(item.status, 'Needs review');
+  assert.equal(item.requiresReverification, true);
+  assert.equal(rerun.audit.some(event => event.id === approval.id), true);
+  assert.equal(rerun.audit.filter(event => event.caseId === item.id && event.action === 'Approval requires re-verification').length, 1);
+  assert.equal(runBatch(rerun, changed).audit.filter(event => event.caseId === item.id && event.action === 'Approval requires re-verification').length, 1);
+  assert.equal(initial.audit.some(event => event.caseId === 'COL-1019' && event.action === 'Large transaction flagged' && event.evidence.policy.version), true);
+  const legacy = { ...approved, decisions: { ...approved.decisions, 'COL-1019': { ...approved.decisions['COL-1019'], evidence: undefined } } };
+  assert.equal(getCases(legacy).find(candidate => candidate.id === 'COL-1019').requiresReverification, true);
+});
+
+test('automatic matches retain rule checks and receive a new snapshot when policy changes', () => {
+  const initial = createInitialState();
+  const original = initial.audit.find(event => event.caseId === 'COL-1011' && event.action === 'Auto matched');
+  assert.ok(original.evidence.checks.every(check => check.startsWith('Passed:')));
+  assert.equal(runBatch(initial).audit.filter(event => event.caseId === 'COL-1011' && event.action === 'Auto matched').length, 1);
+  const changed = { ...RULE_SETTINGS, largeTransactionThresholds: { SGD: 5000, USD: 10000 } };
+  const rerun = runBatch(initial, changed);
+  const matches = rerun.audit.filter(event => event.caseId === 'COL-1011' && event.action === 'Auto matched');
+  assert.equal(matches.length, 2);
+  assert.deepEqual(matches.map(event => event.evidence.policy.largeTransactionThreshold).sort((a, b) => a - b), [5000, 10000]);
+  assert.equal(runBatch(rerun, changed).audit.filter(event => event.caseId === 'COL-1011' && event.action === 'Auto matched').length, 2);
+});
+
+test('a tighter threshold records when a former automatic match needs review', () => {
+  const initial = createInitialState();
+  const stricter = { ...RULE_SETTINGS, largeTransactionThresholds: { SGD: 100, USD: 10000 } };
+  const rerun = runBatch(initial, stricter);
+  const item = getCases(rerun, stricter).find(candidate => candidate.id === 'COL-1011');
+  assert.equal(item.status, 'Needs review');
+  assert.equal(item.category, 'high-value');
+  assert.equal(rerun.audit.filter(event => event.caseId === item.id && event.action === 'Auto matched').length, 1);
+  assert.equal(rerun.audit.filter(event => event.caseId === item.id && event.action === 'Automatic match requires review').length, 1);
+  assert.equal(runBatch(rerun, stricter).audit.filter(event => event.caseId === item.id && event.action === 'Automatic match requires review').length, 1);
+});
+
+test('two collections cannot claim the same exact-reference posting', () => {
+  const initial = createInitialState();
+  const original = getCases(initial).find(item => item.id === 'COL-1011');
+  const competing = { ...original.collection, id: 'COL-COMPETING' };
+  const state = { ...initial, manualCollections: [competing] };
+  for (const id of ['COL-1011', competing.id]) {
+    const item = getCases(state).find(candidate => candidate.id === id);
+    assert.equal(item.category, 'ledger-conflict');
+    assert.equal(item.status, 'Needs review');
+    assert.equal(item.autoLedgerId, null);
+    assert.equal(canReviewMatch(item), false);
+  }
 });
 
 test('large transaction approval enforces reviewer permissions, evidence, reason, and explicit verification', () => {

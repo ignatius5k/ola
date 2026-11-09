@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ola — Airwallex-inspired dashboard draft</title>
+  <style>
+    :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#20252b;background:#fff;font-size:13px}
+    *{box-sizing:border-box}body{margin:0}button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #695dff;outline-offset:3px}
+    .shell{display:grid;grid-template-columns:196px minmax(0,1fr);min-height:100vh}
+    .sidebar{background:#191c20;color:#f7f8f9;display:flex;flex-direction:column;padding:21px 11px 18px;min-height:100vh}
+    .brand{display:flex;align-items:center;gap:9px;padding:0 11px;margin-bottom:28px;font-size:16px;font-weight:700;letter-spacing:-.3px}.brand img{width:30px;height:30px;border-radius:7px}
+    .workspace{padding:0 11px;margin-bottom:26px;color:#b5bac1;font-size:10px;line-height:1.6}.workspace strong{display:block;color:#fff;font-size:11px;font-weight:600}
+    .nav-group{display:grid;gap:2px}.nav-label{padding:0 11px;margin:20px 0 9px;color:#9097a1;text-transform:uppercase;font-size:9px;letter-spacing:.1em}
+    .nav-item{display:flex;align-items:center;gap:10px;min-height:35px;padding:0 11px;border-radius:5px;color:#c1c6cc;font-size:11px;font-weight:500}.nav-item.active{background:#2d3239;color:#fff}.nav-item svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.7;flex:none}.nav-item .nav-count{margin-left:auto;color:#bab2ff}
+    .environment{margin-top:auto;padding:17px 11px 0;border-top:1px solid #33383e;color:#aab0b7;font-size:10px;line-height:1.6}.environment .dot{display:inline-block;width:6px;height:6px;background:#cbb963;border-radius:50%;margin-right:6px}
+    .main{min-width:0;background:#fff}.topbar{height:61px;display:flex;align-items:center;justify-content:space-between;padding:0 42px;border-bottom:1px solid #eef0f2}.breadcrumb{color:#656d77;font-size:11px}.breadcrumb strong{color:#252b31}.top-actions{display:flex;align-items:center;gap:12px}.top-actions label{display:flex;align-items:center;gap:7px;color:#646b74;font-size:11px}.top-actions select{height:30px;padding:0 24px 0 8px;background:#fff;border:1px solid #e5e8ec;border-radius:4px;color:#252b31;font-size:11px}.currency{border:1px solid #e5e8ec;border-radius:4px;padding:7px 9px;color:#4c545d;font-size:10px}.avatar{display:grid;place-items:center;width:27px;height:27px;border-radius:50%;background:#eeeaff;color:#6357e8;font-size:10px;font-weight:700}
+    .content{max-width:1450px;margin:0 auto;padding:35px 42px 75px}.draft-tag{display:inline-flex;padding:4px 7px;border-radius:3px;background:#f0edff;color:#5d51df;font-size:9px;font-weight:700;letter-spacing:.05em}.heading{display:flex;justify-content:space-between;align-items:end;gap:18px;margin-top:14px}.heading h1{margin:0;font-size:25px;font-weight:650;letter-spacing:-.6px}.heading p{margin:6px 0 0;color:#6c747e;font-size:11px;line-height:1.5}.heading .help{color:#7f8790;font-size:10px;white-space:nowrap}
+    .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin:27px 0 33px}.summary-card{display:flex;flex-direction:column;align-items:start;width:100%;min-height:130px;padding:16px 17px 14px;border:1px solid #e5e8ec;border-radius:6px;background:#fff;text-align:left;color:#252b31;transition:border-color .16s,background .16s}.summary-card:hover,.summary-card[aria-pressed="true"]{border-color:#aca3ff;background:#fbfaff}.summary-card .card-title{font-size:12px;font-weight:600;line-height:1.35}.summary-card .card-detail{display:block;margin-top:5px;color:#727b85;font-size:10px;line-height:1.45}.summary-card .card-bottom{display:flex;align-items:end;justify-content:space-between;gap:10px;width:100%;margin-top:auto;padding-top:16px}.summary-card .card-value{font-size:24px;font-weight:650;letter-spacing:-.5px;line-height:1}.summary-card .card-action{color:#6155ed;font-size:10px;font-weight:650;white-space:nowrap}.summary-card:hover .card-action{text-decoration:underline}.summary-card.shared .card-value{font-size:19px}
+    .section-head{display:flex;align-items:end;justify-content:space-between;gap:15px;border-bottom:1px solid #e8ebee}.tabs{display:flex;gap:24px}.tab{padding:0 1px 13px;border:0;border-bottom:2px solid transparent;background:none;color:#6d747e;font-size:12px;font-weight:600}.tab[aria-selected="true"]{border-bottom-color:#695dff;color:#252b31}.section-meta{padding-bottom:13px;color:#858d96;font-size:10px}
+    .table-panel{margin-top:18px;border:1px solid #e5e8ec;border-radius:6px;background:#fff;box-shadow:0 3px 16px #18212b0b}.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 16px;border-bottom:1px solid #eef0f2}.search-wrap{display:flex;align-items:center;gap:7px;flex:1 1 300px;min-width:220px;height:33px;padding:0 10px;border:1px solid #e3e7eb;border-radius:4px;color:#858d96}.search-wrap svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8}.search-wrap input{width:100%;min-width:0;border:0;outline:0;color:#252b31;font-size:11px}.search-wrap input::placeholder{color:#9ba2aa}.filter{height:33px;max-width:170px;padding:0 24px 0 9px;border:1px solid #e3e7eb;border-radius:4px;background:#fff;color:#4d5660;font-size:11px}.clear-button{border:0;background:none;color:#6559e8;font-size:10px;font-weight:600}
+    .table-scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:720px}thead{background:#f8f9fa;color:#737c86;text-align:left;text-transform:uppercase;font-size:9px;letter-spacing:.055em}th{height:36px;font-weight:600}th,td{padding:11px 15px}th:first-child,td:first-child{padding-left:18px}th:last-child,td:last-child{padding-right:18px;text-align:right}tbody tr{border-top:1px solid #eef0f2}tbody tr:hover{background:#fbfbfd}td{height:62px;color:#313841;font-size:11px}td small{display:block;margin-top:4px;color:#858e98;font-size:10px}.case-name{border:0;padding:0;background:none;color:#252b31;text-align:left;font-weight:600}.case-name:hover{text-decoration:underline}.amount{font-weight:600;white-space:nowrap}.status{display:inline-block;padding:4px 7px;border-radius:3px;font-size:9px;font-weight:600;white-space:nowrap}.status.returned{background:#fff2de;color:#9a661a}.status.investigate{background:#eef1ff;color:#4d5aa8}.status.awaiting,.status.waiting{background:#f1f3f5;color:#616a74}.status.submitted{background:#edeaff;color:#5b4fd3}.status.demo{background:#eef3fb;color:#486a95}.status.matched{background:#e9f6ef;color:#2b7b55}.open-case{border:0;padding:5px 0;background:none;color:#6256ea;font-size:10px;font-weight:600;white-space:nowrap}.open-case:hover{text-decoration:underline}
+    .table-footer{display:flex;justify-content:space-between;gap:15px;align-items:center;padding:14px 17px;border-top:1px solid #eef0f2;color:#87909a;font-size:10px}.table-footer strong{font-weight:550;color:#56606a}.empty{padding:45px 20px;text-align:center;color:#68717b}.empty strong{display:block;color:#313841;font-size:13px}.empty p{font-size:11px}.empty button{border:0;background:none;color:#6256ea;font-size:11px;font-weight:600}
+    .design-note{margin-top:26px;padding:11px 13px;background:#f8f9fb;border:1px solid #edf0f2;border-radius:4px;color:#77808a;font-size:10px;line-height:1.5}.design-note strong{color:#515b65}
+    dialog{width:min(460px,calc(100vw - 30px));border:1px solid #e4e8ec;border-radius:7px;padding:25px;color:#252b31;box-shadow:0 18px 60px #1f27343b}dialog::backdrop{background:#151b2380}dialog .eyebrow{display:block;color:#665ae9;text-transform:uppercase;font-size:9px;font-weight:700;letter-spacing:.08em}dialog h2{margin:8px 0 3px;font-size:21px}dialog .dialog-amount{display:block;margin-bottom:18px;font-size:17px;font-weight:600}dialog dl{margin:0}dialog dl div{display:grid;grid-template-columns:100px 1fr;gap:12px;padding:9px 0;border-top:1px solid #eceff2;font-size:11px}dialog dt{color:#7a838d}dialog dd{margin:0}dialog .dialog-note{padding:12px;background:#f7f8fa;border-radius:4px;color:#58616c;font-size:11px;line-height:1.55}dialog .close{margin-top:9px;padding:9px 13px;border:0;border-radius:4px;background:#665ae9;color:#fff;font-size:11px;font-weight:600}
+    @media(max-width:1100px){.content{padding:30px 26px 60px}.topbar{padding:0 26px}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:760px){.shell{display:block}.sidebar{min-height:0;padding:12px 14px}.brand{margin-bottom:11px;padding:0}.workspace,.environment,.nav-label{display:none}.nav-group{display:flex;overflow-x:auto;gap:4px}.nav-item{white-space:nowrap;padding:0 9px}.topbar{padding:0 17px}.content{padding:24px 17px 45px}.cards{gap:9px}.heading .help{display:none}.filter{max-width:none;flex:1 1 120px}}
+    @media(max-width:520px){.top-actions{gap:6px}.top-actions label{font-size:0}.top-actions select{font-size:11px}.currency{display:none}.heading h1{font-size:23px}.cards{grid-template-columns:1fr 1fr;margin:22px 0 26px}.summary-card{padding:13px;min-height:138px}.summary-card .card-value{font-size:21px}.summary-card .card-bottom{display:block}.summary-card .card-action{display:block;margin-top:8px;white-space:normal}.section-head{align-items:stretch}.section-meta{align-self:end;text-align:right;font-size:9px}.tabs{gap:14px}.tab{font-size:11px}.table-scroll{overflow:visible}table{display:block;min-width:0}thead{display:none}tbody{display:grid;gap:10px;padding:12px}tbody tr{display:grid;grid-template-columns:1fr auto;gap:7px 12px;border:1px solid #e8ebee;border-radius:5px;padding:12px}td,th:first-child,td:first-child,th:last-child,td:last-child{height:auto;padding:0;text-align:left}td{display:block}td:nth-child(1){grid-column:1;grid-row:1}td:nth-child(2){grid-column:1/-1;grid-row:2}td:nth-child(3){grid-column:2;grid-row:1;text-align:right}td:nth-child(4){grid-column:1;grid-row:3}td:nth-child(5){grid-column:1/-1;grid-row:4;color:#69727c}td:nth-child(5)::before{content:"Next: ";font-weight:600}td:nth-child(6){grid-column:2;grid-row:3;text-align:right}.table-footer{display:block}.table-footer span{display:block;margin-top:4px}}
+  </style>
+</head>
+<body>
+  <svg aria-hidden="true" width="0" height="0" style="position:absolute"><symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol><symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h2M3 12h2M3 18h2"/></symbol><symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol><symbol id="i-source" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></symbol></svg>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><img src="/ola-mark.svg" alt="" />Ola</div>
+      <div class="workspace"><strong>Reconciliation workspace</strong>Operations / Singapore</div>
+      <nav class="nav-group" aria-label="Draft navigation">
+        <span class="nav-item active"><svg><use href="#i-grid"/></svg>Overview</span>
+        <span class="nav-item"><svg><use href="#i-list"/></svg>Transactions</span>
+        <span class="nav-item"><svg><use href="#i-list"/></svg>Cases</span>
+        <span class="nav-label">Operations</span>
+        <span class="nav-item"><svg><use href="#i-clock"/></svg>Activity</span>
+        <span class="nav-item"><svg><use href="#i-source"/></svg>Sources &amp; rules</span>
+      </nav>
+      <div class="environment"><span class="dot"></span>Test environment<br />Synthetic transactions<br />Design draft</div>
+    </aside>
+    <div class="main">
+      <header class="topbar"><span class="breadcrumb">Workspace / <strong>Overview</strong></span><div class="top-actions"><span class="currency">SGD</span><label>Act as <select id="role" aria-label="Show dashboard role"><option value="analyst">Analyst</option><option value="reviewer">Reviewer</option></select></label><span class="avatar" aria-hidden="true">OL</span></div></header>
+      <main class="content">
+        <span class="draft-tag">DESIGN DRAFT · ILLUSTRATIVE COUNTS</span>
+        <div class="heading"><div><h1>Overview</h1><p id="role-copy">Investigate exceptions and prepare evidence for review.</p></div><span class="help">Role-specific work · SGD collections</span></div>
+        <section class="cards" id="cards" aria-label="Work states"></section>
+        <section aria-label="Cases preview"><div class="section-head"><div class="tabs" role="tablist" aria-label="Case views"><button type="button" class="tab" role="tab" data-tab="action" aria-selected="true">Action required</button><button type="button" class="tab" role="tab" data-tab="all" aria-selected="false">All cases</button></div><span class="section-meta" id="section-meta"></span></div>
+          <div class="table-panel"><div class="toolbar"><label class="search-wrap"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="search" type="search" placeholder="Search case, issue, or amount" aria-label="Search sample cases" /></label><select class="filter" id="status-filter" aria-label="Filter by status"></select><select class="filter" id="type-filter" aria-label="Filter by issue type"></select><button class="clear-button" type="button" id="clear-filters" hidden>Clear filters</button></div>
+            <div class="table-scroll"><table><thead><tr><th>Case</th><th>Exception</th><th>Amount</th><th>Status</th><th>Next step</th><th></th></tr></thead><tbody id="case-rows"></tbody></table><div class="empty" id="empty" hidden><strong>No sample cases match</strong><p>Try another status or search term.</p><button type="button" id="empty-clear">Clear filters</button></div></div>
+            <div class="table-footer"><strong id="result-count"></strong><span>Sample rows illustrate the layout; card totals are separate illustrative counts.</span></div>
+          </div>
+        </section>
+        <div class="design-note"><strong>Design draft only.</strong> This page follows the layout of the <a href="https://mobbin.com/screens/2022cc2c-c844-4524-8989-6f906a9b8810?utm_source=chatgpt&amp;utm_medium=ai-assistant&amp;utm_source_platform=mcp">Airwallex reimbursements screen</a>. Counts and cases are synthetic. Filters and case previews work here; no Ola data is changed.</div>
+      </main>
+    </div>
+  </div>
+  <dialog id="case-dialog" aria-labelledby="dialog-title"><span class="eyebrow" id="dialog-status"></span><h2 id="dialog-title"></h2><span class="dialog-amount" id="dialog-amount"></span><dl><div><dt>Issue</dt><dd id="dialog-issue"></dd></div><div><dt>Next step</dt><dd id="dialog-next"></dd></div></dl><p class="dialog-note" id="dialog-note"></p><form method="dialog"><button class="close">Close preview</button></form></dialog>
+  <script>
+    const data = {
+      analyst: {
+        copy: 'Investigate exceptions and prepare evidence for review.',
+        cards: [
+          { title: 'Needs investigation', detail: 'Cases you can advance now', value: '13', action: 'Investigate cases →', state: 'investigate' },
+          { title: 'Returned for evidence', detail: 'Reviewer requested a follow-up', value: '1', action: 'Address request →', state: 'returned' },
+          { title: 'Awaiting source', detail: 'No eligible posting yet', value: '2', action: 'Check waiting cases →', state: 'awaiting' },
+          { title: 'Reconciliation', detail: 'Matched SGD collections', value: '7 / 24', action: 'View matched →', state: 'matched', shared: true }
+        ],
+        cases: [
+          { id: 'civic-a', name: 'Civic Supplies', issue: 'Fee difference', amount: '$200.00', state: 'returned', next: 'Confirm source fee', note: 'Reviewer asked for the recorded fee to be checked against the source record before resubmission.', active: true },
+          { id: 'east', name: 'East Coast Café', issue: 'Duplicate reference', amount: '$80.00', state: 'investigate', next: 'Compare ledger postings', note: 'Two postings share a reference. Compare them with the collection before preparing a recommendation.', active: true },
+          { id: 'river', name: 'River Pharmacy', issue: 'Reversal detected', amount: '$45.00', state: 'investigate', next: 'Verify posting direction', note: 'The nearby ledger record is a reversal. Confirm its direction against the source transaction.', active: true },
+          { id: 'north', name: 'North Garden', issue: 'Posting missing', amount: '$55.00', state: 'awaiting', next: 'Check source availability', note: 'No eligible posting is available yet. The later source file must arrive before a recommendation can be made.', active: false },
+          { id: 'harbor-a', name: 'Harbor Market', issue: 'Records matched', amount: '$125.00', state: 'matched', next: 'No action required', note: 'This collection has a recorded match and remains visible in transaction history.', active: false }
+        ]
+      },
+      reviewer: {
+        copy: 'Review prepared evidence and record a decision in the shared case.',
+        cards: [
+          { title: 'Analyst submissions', detail: 'Prepared cases awaiting a decision', value: '1', action: 'Review submission →', state: 'submitted' },
+          { title: 'Demo candidates', detail: 'Rule-eligible, without a handoff', value: '4', action: 'Inspect candidates →', state: 'demo' },
+          { title: 'Waiting on Analyst', detail: 'Returned for more evidence', value: '1', action: 'View return request →', state: 'waiting' },
+          { title: 'Reconciliation', detail: 'Matched SGD collections', value: '7 / 24', action: 'View matched →', state: 'matched', shared: true }
+        ],
+        cases: [
+          { id: 'marina', name: 'Marina Print', issue: 'Reference discrepancy', amount: '$320.00', state: 'submitted', next: 'Review LED-5008 evidence', note: 'The Analyst proposed LED-5008. Amount and currency align, while the source reference differs and needs independent review.', active: true },
+          { id: 'summit', name: 'Summit Industrial', issue: 'Large amount', amount: '$12,500.00', state: 'demo', next: 'Verify source amount', note: 'This is a rule-eligible demo candidate without an Analyst handoff. Verify the source amount before any decision.', active: false },
+          { id: 'quay', name: 'North Quay Trading', issue: 'Large amount', amount: '$15,000.00', state: 'demo', next: 'Verify source amount', note: 'This is a rule-eligible demo candidate without an Analyst handoff. Check the source and eligible posting.', active: false },
+          { id: 'civic-r', name: 'Civic Supplies', issue: 'Fee difference', amount: '$200.00', state: 'waiting', next: 'Await revised evidence', note: 'The Reviewer returned this case. The Analyst is confirming the recorded fee against the source.', active: false },
+          { id: 'harbor-r', name: 'Harbor Market', issue: 'Records matched', amount: '$125.00', state: 'matched', next: 'No action required', note: 'This collection has a recorded match and remains visible in transaction history.', active: false }
+        ]
+      }
+    };
+    const stateNames = { investigate: 'Needs investigation', returned: 'Returned', awaiting: 'Awaiting source', submitted: 'Submitted', demo: 'Demo candidate', waiting: 'Waiting on Analyst', matched: 'Matched' };
+    const roleSelect = document.getElementById('role');
+    const cardsElement = document.getElementById('cards');
+    const rowsElement = document.getElementById('case-rows');
+    const searchElement = document.getElementById('search');
+    const statusFilter = document.getElementById('status-filter');
+    const typeFilter = document.getElementById('type-filter');
+    let activeTab = 'action';
+    let selectedStatus = '';
+    let selectedType = '';
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
+    }
+    function currentData() { return data[roleSelect.value]; }
+    function renderCards() {
+      cardsElement.innerHTML = currentData().cards.map(card =>
+        '<button type="button" class="summary-card' + (card.shared ? ' shared' : '') + '" data-state="' + card.state + '" aria-pressed="' + (selectedStatus === card.state) + '">' +
+        '<span class="card-title">' + escapeHtml(card.title) + '</span><span class="card-detail">' + escapeHtml(card.detail) + '</span>' +
+        '<span class="card-bottom"><strong class="card-value">' + escapeHtml(card.value) + '</strong><span class="card-action">' + escapeHtml(card.action) + '</span></span></button>'
+      ).join('');
+    }
+    function renderFilterOptions() {
+      statusFilter.innerHTML = '<option value="">All statuses</option>' + currentData().cards.map(card =>
+        '<option value="' + card.state + '">' + escapeHtml(stateNames[card.state]) + '</option>'
+      ).join('');
+      const types = [...new Set(currentData().cases.map(item => item.issue))];
+      typeFilter.innerHTML = '<option value="">All issue types</option>' + types.map(type =>
+        '<option value="' + escapeHtml(type) + '">' + escapeHtml(type) + '</option>'
+      ).join('');
+    }
+    function render() {
+      const query = searchElement.value.trim().toLocaleLowerCase();
+      const matches = currentData().cases.filter(item =>
+        (activeTab === 'all' || item.active) &&
+        (!selectedStatus || item.state === selectedStatus) &&
+        (!selectedType || item.issue === selectedType) &&
+        (!query || (item.name + ' ' + item.issue + ' ' + item.amount + ' ' + stateNames[item.state]).toLocaleLowerCase().includes(query))
+      );
+      document.querySelectorAll('.tab').forEach(tab => tab.setAttribute('aria-selected', String(tab.dataset.tab === activeTab)));
+      cardsElement.querySelectorAll('.summary-card').forEach(card => card.setAttribute('aria-pressed', String(card.dataset.state === selectedStatus)));
+      statusFilter.value = selectedStatus;
+      typeFilter.value = selectedType;
+      document.getElementById('clear-filters').hidden = !query && !selectedStatus && !selectedType;
+      document.getElementById('section-meta').textContent = activeTab === 'action' ? 'Cases ready for this role' : 'All sample cases';
+      document.getElementById('result-count').textContent = 'Showing ' + matches.length + ' sample ' + (matches.length === 1 ? 'case' : 'cases');
+      document.getElementById('empty').hidden = matches.length > 0;
+      rowsElement.innerHTML = matches.map(item =>
+        '<tr><td><button type="button" class="case-name" data-case="' + item.id + '">' + escapeHtml(item.name) + '</button><small>SGD collection</small></td>' +
+        '<td>' + escapeHtml(item.issue) + '</td><td class="amount">' + escapeHtml(item.amount) + '</td>' +
+        '<td><span class="status ' + item.state + '">' + escapeHtml(stateNames[item.state]) + '</span></td>' +
+        '<td>' + escapeHtml(item.next) + '</td><td><button type="button" class="open-case" data-case="' + item.id + '">Open case →</button></td></tr>'
+      ).join('');
+    }
+    function resetFilters() {
+      searchElement.value = '';
+      selectedStatus = '';
+      selectedType = '';
+      render();
+    }
+    function showCase(id) {
+      const item = currentData().cases.find(row => row.id === id);
+      if (!item) return;
+      document.getElementById('dialog-status').textContent = stateNames[item.state] + ' · sample case';
+      document.getElementById('dialog-title').textContent = item.name;
+      document.getElementById('dialog-amount').textContent = item.amount + ' SGD';
+      document.getElementById('dialog-issue').textContent = item.issue;
+      document.getElementById('dialog-next').textContent = item.next;
+      document.getElementById('dialog-note').textContent = item.note + ' In the implemented dashboard, this opens the shared case evidence and audit history.';
+      document.getElementById('case-dialog').showModal();
+    }
+    cardsElement.addEventListener('click', event => {
+      const card = event.target.closest('.summary-card');
+      if (!card) return;
+      selectedStatus = card.dataset.state;
+      selectedType = '';
+      activeTab = currentData().cases.some(item => item.state === selectedStatus && item.active) ? 'action' : 'all';
+      render();
+    });
+    document.querySelector('.tabs').addEventListener('click', event => {
+      const tab = event.target.closest('.tab');
+      if (!tab) return;
+      activeTab = tab.dataset.tab;
+      selectedStatus = '';
+      render();
+    });
+    rowsElement.addEventListener('click', event => {
+      const button = event.target.closest('[data-case]');
+      if (button) showCase(button.dataset.case);
+    });
+    searchElement.addEventListener('input', render);
+    statusFilter.addEventListener('change', () => {
+      selectedStatus = statusFilter.value;
+      if (selectedStatus) activeTab = currentData().cases.some(item => item.state === selectedStatus && item.active) ? 'action' : 'all';
+      render();
+    });
+    typeFilter.addEventListener('change', () => { selectedType = typeFilter.value; render(); });
+    document.getElementById('clear-filters').addEventListener('click', resetFilters);
+    document.getElementById('empty-clear').addEventListener('click', resetFilters);
+    roleSelect.addEventListener('change', () => {
+      activeTab = 'action'; selectedStatus = ''; selectedType = ''; searchElement.value = '';
+      document.getElementById('role-copy').textContent = currentData().copy;
+      renderCards(); renderFilterOptions(); render();
+    });
+    renderCards(); renderFilterOptions(); render();
+  </script>
+</body>
+</html>

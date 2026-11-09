@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ola — Main dashboard draft</title>
+  <style>
+    :root{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;color:#30313d;background:#fff;font-size:14px}
+    *{box-sizing:border-box}body{margin:0}button,select{font:inherit}button:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid #635bff;outline-offset:3px}
+    .shell{display:flex;min-height:100vh}.sidebar{width:240px;flex:none;border-right:1px solid #ebeef1;padding:20px 16px;display:flex;flex-direction:column}
+    .brand{display:flex;align-items:center;gap:10px;margin:0 6px 29px;font-size:13px;font-weight:650}.brand img{width:30px;height:30px;border-radius:6px}
+    .nav{display:grid;gap:2px}.nav a{display:flex;align-items:center;gap:11px;padding:9px;border-radius:5px;text-decoration:none;color:#414552;font-size:13px}.nav a.active{color:#635bff;font-weight:600}.nav svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.7}.nav small{margin-left:auto;padding:2px 5px;background:#f1efff;border-radius:4px;color:#635bff;font-size:10px}.nav-label{margin:27px 9px 8px;color:#687385;font-size:11px}.environment{margin-top:auto;padding:18px 8px 0;color:#687385;font-size:11px;line-height:1.6}.dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#e4a940;margin-right:5px}
+    .main{min-width:0;flex:1}.topbar{height:58px;padding:0 40px;display:flex;align-items:center;justify-content:space-between;gap:20px}.search{width:min(385px,45%);height:32px;border:0;border-radius:5px;background:#f6f7f9;color:#8792a2;padding:8px 11px;font-size:12px}.top-actions{display:flex;align-items:center;gap:17px;color:#687385;font-size:12px}.top-actions select{border:0;background:#fff;color:#414552;font-weight:500;cursor:pointer}.plus{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#635bff;color:#fff;font-size:19px;line-height:1}
+    .content{padding:20px 40px 70px;max-width:1500px}.draft-tag{display:inline-flex;align-items:center;gap:6px;margin-bottom:12px;padding:5px 8px;border:1px solid #e4e1ff;border-radius:4px;background:#f8f7ff;color:#635bff;font-size:10px;font-weight:600;letter-spacing:.02em}.heading{display:flex;justify-content:space-between;align-items:start;gap:20px;padding-bottom:17px;border-bottom:1px solid #ebeef1}.heading h1{font-size:28px;line-height:1.25;letter-spacing:-.65px;margin:0}.heading p{font-size:11px;line-height:1.5;color:#687385;margin:5px 0 0}.outline{border:1px solid #d9dde4;border-radius:5px;background:#fff;color:#414552;padding:7px 10px;font-size:11px;white-space:nowrap}
+    .role-view[hidden]{display:none}.summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:24px 0 28px}.summary-card{display:flex;flex-direction:column;align-items:start;width:100%;border:1px solid #e5e8ed;border-radius:6px;padding:16px 18px 15px;min-height:133px;background:#fff;color:#30313d;text-align:left;cursor:pointer}.summary-card.primary{border-top:3px solid #635bff;padding-top:14px}.summary-card:hover,.summary-card.is-selected{border-color:#bcb5ff;background:#faf9ff}.summary-card .count{display:block;font-size:28px;line-height:1.2;font-weight:650;letter-spacing:-.5px}.summary-card .label{display:block;margin-top:4px;font-size:12px;font-weight:550}.summary-card .hint{display:block;margin-top:7px;color:#687385;font-size:10px;line-height:1.5}.summary-card .card-cta{display:block;margin-top:auto;padding-top:12px;color:#635bff;font-size:11px;font-weight:600}.summary-card:hover .card-cta{text-decoration:underline}
+    .work-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:14px}.work-head h2,.health h2{margin:0;font-size:18px;letter-spacing:-.25px;font-weight:600}.work-head span{font-size:11px;color:#687385}.work-layout{display:grid;grid-template-columns:minmax(0,1.62fr) minmax(270px,1fr);gap:20px}.queue,.focus{border:1px solid #e5e8ed;border-radius:6px;background:#fff}.queue-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid #ebeef1}.queue-head strong{font-size:13px;font-weight:600}.text-action{border:0;padding:0;background:none;color:#635bff;font-size:11px;font-weight:600;cursor:pointer;text-align:right}.text-action:hover{text-decoration:underline}.queue-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;width:100%;padding:15px 18px;border:0;border-bottom:1px solid #f0f2f4;background:#fff;color:#30313d;text-align:left;cursor:pointer}.queue-row[hidden]{display:none}.queue-row:last-child{border-bottom:0}.queue-row:hover{background:#f8f8fc}.queue-row.selected{background:#faf9ff;border-left:3px solid #635bff;padding-left:15px}.queue-row strong{display:block;font-size:12px;font-weight:600}.queue-row small{display:block;margin-top:4px;color:#687385;font-size:10px;line-height:1.45}.row-right{text-align:right}.row-right strong{font-size:12px}.badge{display:inline-block;padding:3px 5px;border-radius:3px;font-size:9px;font-weight:550;margin-top:5px;white-space:nowrap}.badge.amber{color:#9c6810;background:#fff6da;border:1px solid #f5dda0}.badge.purple{color:#635bff;background:#f1efff;border:1px solid #dfdaff}.badge.gray{color:#687385;background:#f2f4f7;border:1px solid #dde2e8}
+    .focus{padding:18px}.eyebrow{color:#687385;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}.focus h3{font-size:18px;line-height:1.3;margin:7px 0 4px}.focus .amount{display:block;font-size:20px;font-weight:600;margin:0 0 15px}.focus dl{display:grid;gap:0;margin:0 0 16px}.focus dl div{display:grid;grid-template-columns:105px minmax(0,1fr);gap:10px;padding:9px 0;border-top:1px solid #ebeef1;font-size:11px;line-height:1.5}.focus dt{color:#687385}.focus dd{margin:0;color:#414552}.focus .reason{padding:11px 12px;background:#f7f8fa;border-radius:5px;color:#414552;font-size:11px;line-height:1.55;margin:0 0 16px}.focus .reason strong{display:block;margin-bottom:3px}.cta{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:5px;background:#635bff;color:#fff;padding:9px 12px;font-size:11px;font-weight:600;cursor:pointer}.cta:hover{background:#5148e8}.focus .subcopy{display:block;margin-top:11px;color:#8792a2;font-size:10px;line-height:1.5}
+    .health{margin-top:31px}.health-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px}.health-head p{margin:0;color:#8792a2;font-size:10px}.health-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.health-card{border-top:1px solid #ebeef1;padding:15px 2px}.health-card .label{display:block;color:#687385;font-size:11px}.health-card strong{display:block;margin-top:7px;font-size:18px;font-weight:600}.health-card p{color:#8792a2;font-size:10px;line-height:1.5;margin:6px 0 0}.health-card .health-cta{display:inline-block;margin-top:9px;border:0;padding:0;background:none;color:#635bff;font-size:11px;font-weight:600;cursor:pointer}.health-card .health-cta:hover{text-decoration:underline}.bar{height:5px;background:#f1f3f6;border-radius:5px;margin-top:12px;overflow:hidden}.bar span{display:block;width:29%;height:100%;background:#635bff}
+    .design-note{margin-top:28px;padding:14px 16px;border:1px solid #ebeef1;border-radius:6px;background:#fafbfc;color:#687385;font-size:11px;line-height:1.6}.design-note strong{color:#414552}.design-note a{color:#635bff}.preview-dialog{max-width:min(420px,calc(100vw - 32px));border:1px solid #e5e8ed;border-radius:8px;padding:24px;color:#30313d;box-shadow:0 18px 60px #25314b2b}.preview-dialog::backdrop{background:#20243a80}.preview-dialog h2{margin:0 0 10px;font-size:19px}.preview-dialog p{color:#687385;font-size:12px;line-height:1.6}.preview-dialog .outline{margin-top:10px;cursor:pointer}
+    @media(max-width:1050px){.sidebar{width:210px}.topbar,.content{padding-left:27px;padding-right:27px}.work-layout{grid-template-columns:minmax(0,1fr) 245px}}
+    @media(max-width:760px){.shell{display:block}.sidebar{width:100%;padding:13px 16px 0;border-right:0;border-bottom:1px solid #ebeef1}.brand{margin:0 0 10px}.nav{display:flex;overflow:auto;gap:9px}.nav a{white-space:nowrap;font-size:11px;padding:8px 4px}.nav-label,.environment{display:none}.topbar{height:50px;padding:0 16px}.search{width:45%}.content{padding:18px 16px 50px}.summary{gap:8px}.summary-card{padding:12px;min-height:135px}.summary-card.primary{padding-top:10px}.summary-card .count{font-size:23px}.work-layout{grid-template-columns:1fr}.health-grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:540px){.top-actions{gap:8px}.top-actions .icon{display:none}.search{width:40%}.heading h1{font-size:25px}.heading .outline{display:none}.summary{grid-template-columns:1fr 1fr;margin-top:20px}.summary-card:last-child{grid-column:1/-1;min-height:105px}.summary-card .hint{margin-top:5px}.work-head{align-items:start;flex-direction:column;gap:4px}.health-grid{grid-template-columns:1fr}.focus dl div{grid-template-columns:95px minmax(0,1fr)}}
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><img src="/ola-mark.svg" alt="" />Ola</div>
+      <nav class="nav" aria-label="Mockup navigation">
+        <a href="#" class="active"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21h-6v-7H9v7H3z"/></svg>Home</a>
+        <a href="#"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Transactions</a>
+        <a href="#"><svg viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3 8 8 9 5-1 8-4 8-9V6z"/></svg><span id="nav-queue-label">Work queue</span><small id="nav-queue-count">16</small></a>
+        <span class="nav-label">Operations</span>
+        <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Activity</a>
+        <a href="#"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M7 9h10M7 14h10"/></svg>Sources &amp; rules</a>
+      </nav>
+      <div class="environment"><span class="dot"></span>Test environment<br/>Synthetic transactions<br/>Design draft</div>
+    </aside>
+    <div class="main">
+      <header class="topbar"><div class="search">⌕ &nbsp; Search</div><div class="top-actions"><span class="icon">ⓘ</span><span class="icon">◷</span><span class="icon">⚙</span><label>Act as <select id="role-switch" aria-label="Show dashboard role"><option value="analyst">Analyst</option><option value="reviewer">Reviewer</option></select></label><span class="plus">+</span></div></header>
+      <main class="content">
+        <div class="draft-tag">DESIGN DRAFT · ILLUSTRATIVE COUNTS</div>
+        <div class="heading"><div><h1>Overview</h1><p id="role-description">Analyst view · Investigate exceptions and prepare evidence for review.</p></div><span class="outline">⟳ &nbsp; Run check again</span></div>
+
+        <section class="role-view" id="analyst-view" aria-label="Analyst dashboard draft">
+          <div class="summary" aria-label="Analyst work states">
+            <button type="button" class="summary-card primary" data-filter="investigate" aria-pressed="false"><span class="count">13</span><span class="label">Needs investigation</span><span class="hint">Cases you can advance now</span><span class="card-cta">Investigate cases →</span></button>
+            <button type="button" class="summary-card" data-filter="returned" aria-pressed="false"><span class="count">1</span><span class="label">Returned for evidence</span><span class="hint">Reviewer requested a follow-up</span><span class="card-cta">Address request →</span></button>
+            <button type="button" class="summary-card" data-filter="awaiting" aria-pressed="false"><span class="count">2</span><span class="label">Awaiting source</span><span class="hint">No posting to recommend yet</span><span class="card-cta">Check waiting cases →</span></button>
+          </div>
+          <div class="work-head"><h2>Your work</h2><span>Returned requests first, then oldest unresolved collection</span></div>
+          <div class="work-layout"><div class="queue"><div class="queue-head"><strong>Work queue preview</strong><button type="button" class="text-action reset-filter">Show all preview cases →</button></div>
+            <button type="button" class="queue-row selected" data-state="returned" data-case="civicAnalyst" aria-pressed="true"><span><strong>Civic Supplies</strong><small>Fee difference · Reviewer requested source fee confirmation</small></span><span class="row-right"><strong>$200.00</strong><span class="badge amber">Returned</span></span></button>
+            <button type="button" class="queue-row" data-state="investigate" data-case="east" aria-pressed="false"><span><strong>East Coast Café</strong><small>Duplicate reference · Compare two ledger postings</small></span><span class="row-right"><strong>$80.00</strong><span class="badge gray">Investigate</span></span></button>
+            <button type="button" class="queue-row" data-state="investigate" data-case="river" aria-pressed="false"><span><strong>River Pharmacy</strong><small>Reversal detected · Check source and posting type</small></span><span class="row-right"><strong>$45.00</strong><span class="badge gray">Investigate</span></span></button>
+            <button type="button" class="queue-row" data-state="awaiting" data-case="north" aria-pressed="false"><span><strong>North Garden</strong><small>Ledger posting missing · Awaiting later source file</small></span><span class="row-right"><strong>$55.00</strong><span class="badge gray">Waiting</span></span></button>
+          </div><aside class="focus" aria-live="polite"><span class="eyebrow">Selected case · returned for evidence</span><h3>Civic Supplies</h3><span class="amount">$200.00 SGD</span><dl><div><dt>Issue</dt><dd>Fee difference</dd></div><div><dt>Proposed posting</dt><dd>LED-5004</dd></div><div><dt>Next step</dt><dd>Confirm fee evidence and revise findings</dd></div></dl><p class="reason"><strong>Reviewer asked</strong>Please confirm the recorded fee against the source record before resubmitting.</p><button type="button" class="cta">Address evidence request →</button><span class="subcopy">The case keeps the same source records and audit history.</span></aside></div>
+        </section>
+
+        <section class="role-view" id="reviewer-view" aria-label="Reviewer dashboard draft" hidden>
+          <div class="summary" aria-label="Reviewer work states">
+            <button type="button" class="summary-card primary" data-filter="submitted" aria-pressed="false"><span class="count">1</span><span class="label">Analyst submission</span><span class="hint">Prepared case ready for your decision</span><span class="card-cta">Review submission →</span></button>
+            <button type="button" class="summary-card" data-filter="demo" aria-pressed="false"><span class="count">4</span><span class="label">Other demo candidates</span><span class="hint">Rule-eligible, without an Analyst handoff</span><span class="card-cta">Explore candidates →</span></button>
+            <button type="button" class="summary-card" data-filter="waiting" aria-pressed="false"><span class="count">1</span><span class="label">Waiting on Analyst</span><span class="hint">Returned for further evidence</span><span class="card-cta">View return request →</span></button>
+          </div>
+          <div class="work-head"><h2>Decisions</h2><span>Analyst submissions first, then large verification cases</span></div>
+          <div class="work-layout"><div class="queue"><div class="queue-head"><strong>Review queue preview</strong><button type="button" class="text-action reset-filter">Show all preview cases →</button></div>
+            <button type="button" class="queue-row selected" data-state="submitted" data-case="marina" aria-pressed="true"><span><strong>Marina Print</strong><small>Analyst proposes LED-5008 · Reference discrepancy</small></span><span class="row-right"><strong>$320.00</strong><span class="badge purple">Submitted</span></span></button>
+            <button type="button" class="queue-row" data-state="demo" data-case="summit" aria-pressed="false"><span><strong>Summit Industrial</strong><small>Large transaction · Human amount verification required</small></span><span class="row-right"><strong>$12,500.00</strong><span class="badge gray">Demo candidate</span></span></button>
+            <button type="button" class="queue-row" data-state="demo" data-case="quay" aria-pressed="false"><span><strong>North Quay Trading</strong><small>Large transaction · Human amount verification required</small></span><span class="row-right"><strong>$15,000.00</strong><span class="badge gray">Demo candidate</span></span></button>
+            <button type="button" class="queue-row" data-state="waiting" data-case="civicReviewer" data-preview-only hidden aria-pressed="false"><span><strong>Civic Supplies</strong><small>Fee difference · Analyst confirming source fee</small></span><span class="row-right"><strong>$200.00</strong><span class="badge amber">Returned</span></span></button>
+          </div><aside class="focus" aria-live="polite"><span class="eyebrow">Selected case · Analyst submission</span><h3>Marina Print</h3><span class="amount">$320.00 SGD</span><dl><div><dt>Issue</dt><dd>Reference discrepancy</dd></div><div><dt>Proposed posting</dt><dd>LED-5008</dd></div><div><dt>Control</dt><dd>Verify the different references</dd></div></dl><p class="reason"><strong>Analyst summary</strong>The nearby ledger row has the same amount and currency. The source reference differs and needs independent review.</p><button type="button" class="cta">Review evidence →</button><span class="subcopy">Approve, return for evidence, or escalate in the shared case screen.</span></aside></div>
+        </section>
+
+        <section class="health" aria-label="Shared operations health"><div class="health-head"><h2>Operations health</h2><p>Shared context · secondary to the current role's work</p></div><div class="health-grid"><div class="health-card"><span class="label">Reconciliation</span><strong>7 of 24 matched</strong><div class="bar"><span></span></div><p>17 collections remain unresolved across both roles.</p><button type="button" class="health-cta" data-title="View matched records" data-destination="a Transactions list filtered to the 7 matched collections">View matched records →</button></div><div class="health-card"><span class="label">Unresolved collection value</span><strong>$29,985.90 SGD</strong><p>Financial context for this currency, separate from task counts.</p><button type="button" class="health-cta" data-title="Inspect unresolved collections" data-destination="a Transactions list filtered to the 17 unresolved SGD collections">Inspect unresolved collections →</button></div><div class="health-card"><span class="label">Recent activity</span><strong>Latest handoff</strong><p>Analyst submission, return request, and decisions remain in the audit trail.</p><button type="button" class="health-cta" data-title="View activity" data-destination="the Activity page with submissions, return requests, and decisions">View activity →</button></div></div></section>
+        <div class="design-note"><strong>Design proposal only.</strong> Values and cases illustrate a handoff state; they do not read or change Ola's browser data. Try a status card to filter the preview, then select a case. Its action shows the intended case-screen destination.</div>
+      </main>
+    </div>
+  </div>
+  <dialog class="preview-dialog" id="case-dialog"><h2 id="case-dialog-title">Open shared case</h2><p id="case-dialog-copy"></p><form method="dialog"><button class="outline">Close preview</button></form></dialog>
+  <script>
+    const cases = {
+      civicAnalyst: { eyebrow: 'Selected case · returned for evidence', name: 'Civic Supplies', amount: '$200.00 SGD', rows: [['Issue', 'Fee difference'], ['Proposed posting', 'LED-5004'], ['Next step', 'Confirm fee evidence and revise findings']], noteTitle: 'Reviewer asked', note: 'Please confirm the recorded fee against the source record before resubmitting.', action: 'Address evidence request →', subcopy: 'The case keeps the same source records and audit history.' },
+      east: { eyebrow: 'Selected case · needs investigation', name: 'East Coast Café', amount: '$80.00 SGD', rows: [['Issue', 'Duplicate reference'], ['Evidence to check', 'Two ledger postings'], ['Next step', 'Compare the source and ledger records']], noteTitle: 'Why this needs work', note: 'Two postings share a reference. Check which one matches the collection before recommending a posting.', action: 'Compare records →', subcopy: 'The case screen shows both source records and rule results.' },
+      river: { eyebrow: 'Selected case · needs investigation', name: 'River Pharmacy', amount: '$45.00 SGD', rows: [['Issue', 'Reversal detected'], ['Evidence to check', 'Source and posting type'], ['Next step', 'Confirm whether the reversal settles the collection']], noteTitle: 'Why this needs work', note: 'The nearby ledger record is a reversal. Confirm the transaction direction before preparing a recommendation.', action: 'Inspect reversal →', subcopy: 'The case screen keeps the source records together.' },
+      north: { eyebrow: 'Selected case · awaiting source', name: 'North Garden', amount: '$55.00 SGD', rows: [['Issue', 'Ledger posting missing'], ['Current blocker', 'Later source file has not arrived'], ['Next step', 'Check source availability']], noteTitle: 'Waiting on evidence', note: 'There is no eligible posting to recommend yet. Keep the missing source visible without presenting a decision action.', action: 'Check source status →', subcopy: 'A recommendation becomes available after the source arrives.' },
+      marina: { eyebrow: 'Selected case · Analyst submission', name: 'Marina Print', amount: '$320.00 SGD', rows: [['Issue', 'Reference discrepancy'], ['Proposed posting', 'LED-5008'], ['Control', 'Verify the different references']], noteTitle: 'Analyst summary', note: 'The nearby ledger row has the same amount and currency. The source reference differs and needs independent review.', action: 'Review evidence →', subcopy: 'Approve, return for evidence, or escalate in the shared case screen.' },
+      summit: { eyebrow: 'Selected case · demo candidate', name: 'Summit Industrial', amount: '$12,500.00 SGD', rows: [['Issue', 'Large transaction'], ['Current status', 'No Analyst handoff'], ['Control', 'Verify amount against source']], noteTitle: 'Why it appears here', note: 'A rule found an eligible posting, but no Analyst has submitted evidence. Treat this as a separate demo candidate.', action: 'Inspect candidate →', subcopy: 'Its status stays distinct from an Analyst submission.' },
+      quay: { eyebrow: 'Selected case · demo candidate', name: 'North Quay Trading', amount: '$15,000.00 SGD', rows: [['Issue', 'Large transaction'], ['Current status', 'No Analyst handoff'], ['Control', 'Verify amount against source']], noteTitle: 'Why it appears here', note: 'A rule found an eligible posting. Verify the amount and source before deciding how to handle this candidate.', action: 'Inspect candidate →', subcopy: 'Its status stays distinct from an Analyst submission.' },
+      civicReviewer: { eyebrow: 'Selected case · waiting on Analyst', name: 'Civic Supplies', amount: '$200.00 SGD', rows: [['Issue', 'Fee difference'], ['Current status', 'Returned for evidence'], ['Next step', 'Analyst confirms the source fee']], noteTitle: 'Your return request', note: 'Please confirm the recorded fee against the source record before resubmitting.', action: 'View return request →', subcopy: 'This case is outside your active decision queue until it is resubmitted.' }
+    };
+    const queueTitles = {
+      analyst: { all: 'Work queue preview', investigate: 'Needs investigation · preview', returned: 'Returned for evidence · preview', awaiting: 'Awaiting source · preview' },
+      reviewer: { all: 'Review queue preview', submitted: 'Analyst submissions · preview', demo: 'Demo candidates · preview', waiting: 'Waiting on Analyst · preview' }
+    };
+    function selectCase(view, row) {
+      view.querySelectorAll('.queue-row').forEach(item => {
+        const selected = item === row;
+        item.classList.toggle('selected', selected);
+        item.setAttribute('aria-pressed', String(selected));
+      });
+      const item = cases[row.dataset.case];
+      view.querySelector('.focus').innerHTML = `<span class="eyebrow">${item.eyebrow}</span><h3>${item.name}</h3><span class="amount">${item.amount}</span><dl>${item.rows.map(([label, value]) => `<div><dt>${label}</dt><dd>${value}</dd></div>`).join('')}</dl><p class="reason"><strong>${item.noteTitle}</strong>${item.note}</p><button type="button" class="cta">${item.action}</button><span class="subcopy">${item.subcopy}</span>`;
+    }
+    function filterQueue(view, filter) {
+      const role = view.id === 'reviewer-view' ? 'reviewer' : 'analyst';
+      view.querySelectorAll('.summary-card').forEach(card => {
+        const selected = card.dataset.filter === filter;
+        card.classList.toggle('is-selected', selected);
+        card.setAttribute('aria-pressed', String(selected));
+      });
+      const rows = [...view.querySelectorAll('.queue-row')];
+      rows.forEach(row => { row.hidden = filter === 'all' ? row.hasAttribute('data-preview-only') : row.dataset.state !== filter; });
+      view.querySelector('.queue-head strong').textContent = queueTitles[role][filter];
+      view.querySelector('.reset-filter').hidden = filter === 'all';
+      selectCase(view, rows.find(row => !row.hidden));
+    }
+    document.querySelectorAll('.role-view').forEach(view => {
+      view.querySelectorAll('.summary-card').forEach(card => card.addEventListener('click', () => filterQueue(view, card.dataset.filter)));
+      view.querySelectorAll('.queue-row').forEach(row => row.addEventListener('click', () => selectCase(view, row)));
+      view.querySelector('.reset-filter').addEventListener('click', () => filterQueue(view, 'all'));
+      view.querySelector('.focus').addEventListener('click', event => {
+        if (!event.target.closest('.cta')) return;
+        const selected = view.querySelector('.queue-row.selected');
+        const item = cases[selected.dataset.case];
+        document.getElementById('case-dialog-title').textContent = 'Open shared case';
+        document.getElementById('case-dialog-copy').textContent = `In the implemented Ola dashboard, “${item.action.replace(' →', '')}” opens the shared ${item.name} case with its source records, rule results, and audit history. This design draft does not change case data.`;
+        document.getElementById('case-dialog').showModal();
+      });
+      filterQueue(view, 'all');
+    });
+    document.querySelectorAll('.health-cta').forEach(button => button.addEventListener('click', () => {
+      document.getElementById('case-dialog-title').textContent = button.dataset.title;
+      document.getElementById('case-dialog-copy').textContent = `In the implemented Ola dashboard, this opens ${button.dataset.destination}. This design draft uses illustrative values and does not open or change live records.`;
+      document.getElementById('case-dialog').showModal();
+    }));
+    const roleSwitch = document.getElementById('role-switch');
+    roleSwitch.addEventListener('change', () => {
+      const reviewer = roleSwitch.value === 'reviewer';
+      document.getElementById('analyst-view').hidden = reviewer;
+      document.getElementById('reviewer-view').hidden = !reviewer;
+      document.getElementById('role-description').textContent = reviewer
+        ? 'Reviewer view · Verify prepared evidence and record a decision.'
+        : 'Analyst view · Investigate exceptions and prepare evidence for review.';
+      document.getElementById('nav-queue-label').textContent = reviewer ? 'Reviews' : 'Work queue';
+      document.getElementById('nav-queue-count').textContent = reviewer ? '5' : '16';
+      filterQueue(document.getElementById(reviewer ? 'reviewer-view' : 'analyst-view'), 'all');
+    });
+  </script>
+</body>
+</html>

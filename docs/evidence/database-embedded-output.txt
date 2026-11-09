@@ -1,0 +1,295 @@
+SCRUM-39 integration: disposable embedded PostgreSQL with Auth/Storage shim
+This is SQL verification, not a full Supabase service or concurrent-session test.
+PostgreSQL 18.6 (PGlite 0.5.15) on wasm32-unknown-emscripten, compiled by emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 6.0.13 (e13ee988ce3d87a738dd8f3661d02223308c412a), 32-bit
+Legacy upgrade: canonical status mapping, incremented versions, per-case audit, immutable sources/history, retained workspace policy: PASS
+Applied 20261109083027_database_foundation.sql
+Applied 20261109083029_sources_and_cases.sql
+Applied 20261109083032_workflow_and_audit.sql
+Applied 20261109083034_transaction_primitives.sql
+Applied 20261109083036_security_and_storage.sql
+Applied 20261109190000_foreign_key_indexes.sql
+Applied 20261109190001_align_project_contracts.sql
+Shared contract parity: roles, active policy/settings, open seed, all eight canonical states, legacy/unknown rejection, invalid evidence category: PASS
+
+history.test.sql
+1..9
+ok 1 - decision cannot refer to a submission for another case
+ok 2 - last submission must belong to its case
+ok 3 - same-case last submission accepted
+ok 4 - same-case decision accepted
+ok 5 - allocation cannot cite another case decision
+ok 6 - allocation cannot have both a decision and a run
+ok 7 - allocation cannot omit its origin
+ok 8 - same-case decision can allocate its posting
+ok 9 - another case cannot claim the allocated posting
+
+rls.test.sql
+ok 1 - anon cannot read workspaces
+ok 2 - anon cannot read collections
+ok 3 - anon cannot read cases
+ok 4 - anon cannot read audit_events
+ok 5 - anon cannot read evidence
+ok 6 - anon cannot read workspace_members
+ok 7 - anon cannot read collection_read
+ok 8 - anon cannot reach app helpers
+ok 9 - anon cannot create a workspace
+ok 10 - anon sees no storage objects (denied or RLS-filtered)
+ok 11 - authenticated non-member sees no import_batches rows of workspace X
+ok 12 - authenticated non-member sees no collections rows of workspace X
+ok 13 - authenticated non-member sees no ledger_postings rows of workspace X
+ok 14 - authenticated non-member sees no cases rows of workspace X
+ok 15 - authenticated non-member sees no case_drafts rows of workspace X
+ok 16 - authenticated non-member sees no evidence rows of workspace X
+ok 17 - authenticated non-member sees no submissions rows of workspace X
+ok 18 - authenticated non-member sees no decisions rows of workspace X
+ok 19 - authenticated non-member sees no ledger_allocations rows of workspace X
+ok 20 - authenticated non-member sees no reconciliation_runs rows of workspace X
+ok 21 - authenticated non-member sees no run_events rows of workspace X
+ok 22 - authenticated non-member sees no audit_events rows of workspace X
+ok 23 - authenticated non-member sees no workspace_members rows of workspace X
+ok 24 - authenticated non-member sees no workspaces
+ok 25 - authenticated non-member sees no storage objects
+ok 26 - inactive member of X sees no import_batches rows of workspace X
+ok 27 - inactive member of X sees no collections rows of workspace X
+ok 28 - inactive member of X sees no ledger_postings rows of workspace X
+ok 29 - inactive member of X sees no cases rows of workspace X
+ok 30 - inactive member of X sees no case_drafts rows of workspace X
+ok 31 - inactive member of X sees no evidence rows of workspace X
+ok 32 - inactive member of X sees no submissions rows of workspace X
+ok 33 - inactive member of X sees no decisions rows of workspace X
+ok 34 - inactive member of X sees no ledger_allocations rows of workspace X
+ok 35 - inactive member of X sees no reconciliation_runs rows of workspace X
+ok 36 - inactive member of X sees no run_events rows of workspace X
+ok 37 - inactive member of X sees no audit_events rows of workspace X
+ok 38 - inactive member of X sees no workspace_members rows of workspace X
+ok 39 - inactive member of X sees no workspaces
+ok 40 - inactive member of X sees no storage objects
+ok 41 - analyst X reads their import_batches
+ok 42 - workspace A credentials: no workspace B import_batches disclosed
+ok 43 - analyst X reads their collections
+ok 44 - workspace A credentials: no workspace B collections disclosed
+ok 45 - analyst X reads their ledger_postings
+ok 46 - workspace A credentials: no workspace B ledger_postings disclosed
+ok 47 - analyst X reads their cases
+ok 48 - workspace A credentials: no workspace B cases disclosed
+ok 49 - analyst X reads their case_drafts
+ok 50 - workspace A credentials: no workspace B case_drafts disclosed
+ok 51 - analyst X reads their evidence
+ok 52 - workspace A credentials: no workspace B evidence disclosed
+ok 53 - analyst X reads their submissions
+ok 54 - workspace A credentials: no workspace B submissions disclosed
+ok 55 - analyst X reads their decisions
+ok 56 - workspace A credentials: no workspace B decisions disclosed
+ok 57 - analyst X reads their ledger_allocations
+ok 58 - workspace A credentials: no workspace B ledger_allocations disclosed
+ok 59 - analyst X reads their reconciliation_runs
+ok 60 - workspace A credentials: no workspace B reconciliation_runs disclosed
+ok 61 - analyst X reads their run_events
+ok 62 - workspace A credentials: no workspace B run_events disclosed
+ok 63 - analyst X reads their audit_events
+ok 64 - workspace A credentials: no workspace B audit_events disclosed
+ok 65 - analyst X reads their workspace_members
+ok 66 - workspace A credentials: no workspace B workspace_members disclosed
+ok 67 - analyst X sees only workspace X
+ok 68 - and it is workspace X
+ok 69 - policy catalogue readable
+ok 70 - profiles: own display name only (colleague profiles are not in X; Y profile hidden)
+ok 71 - collection_read honours RLS
+ok 72 - collection_read hides workspace Y
+ok 73 - amountMinor is serialised as a string
+ok 74 - amount_minor value
+ok 75 - aggregate totals are integer strings
+ok 76 - totals hide workspace Y
+ok 77 - membership helper returns only the caller's workspaces
+ok 78 - has_workspace_role true for own role
+ok 79 - has_workspace_role false for other role
+ok 80 - has_workspace_role false for another workspace
+ok 81 - authenticated cannot call transaction primitives
+ok 82 - authenticated cannot forge audit events through the primitive
+ok 83 - membership escalation: own role update denied
+ok 84 - cannot reactivate a member
+ok 85 - cannot add self to workspace Y
+ok 86 - cannot add a member to own workspace
+ok 87 - cannot remove members
+ok 88 - cannot change active rule version
+ok 89 - cannot change policy settings
+ok 90 - cannot add policy versions
+ok 91 - audit rewrite denied
+ok 92 - audit delete denied
+ok 93 - direct audit insert denied
+ok 94 - source rewrite denied (collections)
+ok 95 - source delete denied (collections)
+ok 96 - source rewrite denied (ledger)
+ok 97 - source delete denied (ledger)
+ok 98 - direct source insert denied
+ok 99 - direct workflow write denied
+ok 100 - cannot mutate workspace Y case
+ok 101 - direct decision insert denied
+ok 102 - direct allocation write denied
+ok 103 - direct evidence metadata insert denied
+ok 104 - evidence delete denied
+ok 105 - idempotency table is not client readable
+ok 106 - idempotency table is not client writable
+ok 107 - analyst may upload evidence for an own-workspace case
+ok 108 - cannot upload evidence into workspace Y
+ok 109 - cannot upload evidence for a case outside the workspace
+ok 110 - evidence path must follow workspace/case/object
+ok 111 - clients cannot write originals (server only)
+ok 112 - originals of workspace Y are not readable
+ok 113 - originals of workspace X are readable
+ok 114 - same-workspace orphan originals and evidence are hidden
+ok 115 - attached evidence is readable
+ok 116 - objects cannot be overwritten/renamed by clients
+ok 117 - objects cannot be deleted by clients
+ok 118 - reviewer reads workspace cases
+ok 119 - reviewer cannot read workspace Y
+ok 120 - reviewer reads audit trail
+ok 121 - reviewer cannot change own membership
+ok 122 - reviewer cannot write workflow state directly
+ok 123 - reviewer cannot delete audit history
+ok 124 - reviewer cannot upload evidence (analyst-only)
+ok 125 - analyst Y sees exactly one collection
+ok 126 - analyst Y sees none of workspace X
+ok 127 - audit of X not disclosed to Y
+ok 128 - evidence of X not disclosed to Y
+ok 129 - storage of X not disclosed to Y
+ok 130 - service_role reads both workspaces (server-side only)
+ok 131 - service_role cannot rewrite audit history
+ok 132 - service_role cannot delete source records
+ok 133 - service_role cannot change a policy version
+ok 134 - service_role may use the audit primitive
+ok 135 - no public buckets
+ok 136 - private originals and evidence buckets exist
+1..136
+
+schema.test.sql
+ok 1 - exactly the expected public tables
+ok 2 - policy_versions PK is version
+ok 3 - membership unique per workspace/user
+ok 4 - one case per collection
+ok 5 - active-allocation-per-ledger index
+ok 6 - active-allocation-per-case index
+ok 7 - ledger index is partial on released_at IS NULL
+ok 8 - all foreign keys validated
+ok 9 - every cross-table FK among tenant tables is composite (workspace-scoped)
+ok 10 - initial policy version exists
+ok 11 - policy sha256 must match settings
+ok 12 - policy versions are immutable (even for the owner)
+ok 13 - policy versions cannot be deleted
+ok 14 - collection amount must be > 0
+ok 15 - amount above 2^53-1 rejected
+ok 16 - amount of exactly 2^53-1 accepted
+ok 17 - currency limited to SGD/USD
+ok 18 - source row dedupe: unique(workspace, system, source_record_id)
+ok 19 - same source ID is allowed in a different workspace
+ok 20 - a batch from another workspace is not visible to the insert (rejected)
+ok 21 - collection cannot join a ledger batch
+ok 22 - credit amount must be >= 0
+ok 23 - reversal amount must be < 0
+ok 24 - fee_minor must be >= 0
+ok 25 - ledger magnitude capped at 2^53-1
+ok 26 - duplicate-reference scenario: a third posting may reuse reference REF-1 with a distinct source ID
+ok 27 - ledger reference is intentionally non-unique
+ok 28 - accepted collections never update in place
+ok 29 - accepted ledger postings never delete
+ok 30 - append-only tables cannot be truncated
+ok 31 - referenced source tables cannot be truncated (FK) either
+ok 32 - user CSV import requires file_object_path and hash
+ok 33 - object path must be workspace/importUUID/original.csv
+ok 34 - conforming CSV import batch accepted
+ok 35 - manual batch may omit file_object_path
+ok 36 - rejected batch needs an error summary
+ok 37 - a collection has at most one case
+ok 38 - a second, case-less collection in Y
+ok 39 - case cannot adopt another workspace's collection
+ok 40 - workflow_status limited to the known list
+ok 41 - case version only advances by one
+ok 42 - case creator_id is immutable
+ok 43 - cases are never deleted
+ok 44 - evidence path convention enforced
+ok 45 - uploader must be a member of the same workspace
+ok 46 - evidence cannot be silently replaced
+ok 47 - draft may reference its own attachments
+ok 48 - draft cannot reference another workspace's attachment
+ok 49 - evidence referenced by a draft cannot be deleted
+ok 50 - submission with empty evidence_ids accepted
+ok 51 - collection id captured in source_snapshot automatically
+ok 52 - proposed ledger hash captured automatically
+ok 53 - collection hash captured automatically
+ok 54 - caller-supplied snapshot accepted but...
+ok 55 - ...captured values override forged ones
+ok 56 - one submission per case version
+ok 57 - submission evidence_ids must be same-case attachments
+ok 58 - collection/ledger UUIDs are not valid evidence_ids
+ok 59 - submission content is immutable
+ok 60 - submission status may advance
+ok 61 - submissions are never deleted
+ok 62 - referenced evidence cannot be deleted
+ok 63 - decision reason needs >= 8 characters
+ok 64 - valid decision accepted
+ok 65 - one decision per submission
+ok 66 - decisions are immutable
+ok 67 - first active allocation succeeds
+ok 68 - second active allocation of one ledger posting conflicts
+ok 69 - second active allocation for one case conflicts
+ok 70 - raw insert hits the partial unique index too
+ok 71 - index arbitrates even outside the routine
+ok 72 - allocation needs a decision or run
+ok 73 - second submission for rollback check
+ok 74 - decision + conflicting allocation fails as one unit
+ok 75 - no partial decision left behind
+ok 76 - allocation can be released
+ok 77 - after release the case may be allocated again
+ok 78 - allocation may only be released, never re-pointed
+ok 79 - run created
+ok 80 - run event recorded
+ok 81 - unique(run_id, sequence)
+ok 82 - completed run needs completed_at
+ok 83 - run completes
+ok 84 - completed run is terminal
+ok 85 - run events are append-only
+ok 86 - user events need actor_user_id
+ok 87 - system events may omit actor_user_id
+ok 88 - payload requires schemaVersion
+ok 89 - backdated insert accepted...
+ok 90 - ...but occurred_at is stamped by the server
+ok 91 - audit rows cannot be updated
+ok 92 - audit rows cannot be deleted
+ok 93 - audit table cannot be truncated
+ok 94 - append_audit adds schemaVersion
+ok 95 - lock_case with current version
+ok 96 - lock_case detects version conflict
+ok 97 - lock_case cannot see a case through another workspace
+ok 98 - bump_case_version advances by one
+ok 99 - idempotency_begin first call
+ok 100 - same request replays
+ok 101 - same key + different payload rejected
+ok 102 - a pending request cannot commit without an outcome
+ok 103 - idempotency_complete records the outcome
+ok 104 - replay returns the committed outcome
+ok 105 - idempotency identity is immutable
+ok 106 - RLS enabled on every public table
+ok 107 - every SECURITY DEFINER function pins search_path
+ok 108 - the only SECURITY DEFINER routines are the two membership helpers
+ok 109 - authenticated cannot execute transaction primitives
+ok 110 - anon cannot execute any app routine
+ok 111 - anon holds no table privileges
+ok 112 - authenticated holds SELECT only
+ok 113 - every public view is security_invoker
+ok 114 - the four *_read views exist
+1..114
+
+seed.test.sql
+1..9
+ok 1 - collection count matches src/data.js
+ok 2 - ledger count matches src/data.js (initial + later)
+ok 3 - collection source IDs match
+ok 4 - ledger source IDs match
+ok 5 - one case per collection
+ok 6 - later ledger batch holds exactly LED-5009
+ok 7 - later evidence is unprocessed: no runs, no allocations
+ok 8 - duplicate-reference scenario: two postings share QR-241024-102 with distinct source IDs
+ok 9 - all foreign keys validated
+
+Seed counts: {"collections":24,"ledger_postings":25,"cases":24,"audit_events":3}
+PASS: 268 assertions; 7 migrations.

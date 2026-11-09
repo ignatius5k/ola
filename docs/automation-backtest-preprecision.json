@@ -1,0 +1,265 @@
+{
+  "started": "2026-11-09T10:27:17.487Z",
+  "deadline": "2026-11-09T11:09:54.000Z",
+  "cycles": 22,
+  "scenarios": 6600,
+  "safetyFailures": [],
+  "fixtureMatrix": [
+    {
+      "threshold": 100,
+      "window": 5,
+      "auto": 3,
+      "flagged": 12,
+      "review": 19
+    },
+    {
+      "threshold": 100,
+      "window": 15,
+      "auto": 3,
+      "flagged": 12,
+      "review": 19
+    },
+    {
+      "threshold": 100,
+      "window": 30,
+      "auto": 4,
+      "flagged": 12,
+      "review": 18
+    },
+    {
+      "threshold": 100,
+      "window": 60,
+      "auto": 4,
+      "flagged": 12,
+      "review": 18
+    },
+    {
+      "threshold": 500,
+      "window": 5,
+      "auto": 5,
+      "flagged": 3,
+      "review": 17
+    },
+    {
+      "threshold": 500,
+      "window": 15,
+      "auto": 6,
+      "flagged": 3,
+      "review": 16
+    },
+    {
+      "threshold": 500,
+      "window": 30,
+      "auto": 7,
+      "flagged": 3,
+      "review": 15
+    },
+    {
+      "threshold": 500,
+      "window": 60,
+      "auto": 7,
+      "flagged": 3,
+      "review": 15
+    },
+    {
+      "threshold": 1000,
+      "window": 5,
+      "auto": 5,
+      "flagged": 2,
+      "review": 17
+    },
+    {
+      "threshold": 1000,
+      "window": 15,
+      "auto": 6,
+      "flagged": 2,
+      "review": 16
+    },
+    {
+      "threshold": 1000,
+      "window": 30,
+      "auto": 7,
+      "flagged": 2,
+      "review": 15
+    },
+    {
+      "threshold": 1000,
+      "window": 60,
+      "auto": 8,
+      "flagged": 2,
+      "review": 14
+    },
+    {
+      "threshold": 5000,
+      "window": 5,
+      "auto": 5,
+      "flagged": 2,
+      "review": 17
+    },
+    {
+      "threshold": 5000,
+      "window": 15,
+      "auto": 6,
+      "flagged": 2,
+      "review": 16
+    },
+    {
+      "threshold": 5000,
+      "window": 30,
+      "auto": 7,
+      "flagged": 2,
+      "review": 15
+    },
+    {
+      "threshold": 5000,
+      "window": 60,
+      "auto": 8,
+      "flagged": 2,
+      "review": 14
+    },
+    {
+      "threshold": 10000,
+      "window": 5,
+      "auto": 5,
+      "flagged": 2,
+      "review": 17
+    },
+    {
+      "threshold": 10000,
+      "window": 15,
+      "auto": 6,
+      "flagged": 2,
+      "review": 16
+    },
+    {
+      "threshold": 10000,
+      "window": 30,
+      "auto": 7,
+      "flagged": 2,
+      "review": 15
+    },
+    {
+      "threshold": 10000,
+      "window": 60,
+      "auto": 8,
+      "flagged": 2,
+      "review": 14
+    },
+    {
+      "threshold": 20000,
+      "window": 5,
+      "auto": 7,
+      "flagged": 0,
+      "review": 15
+    },
+    {
+      "threshold": 20000,
+      "window": 15,
+      "auto": 8,
+      "flagged": 0,
+      "review": 14
+    },
+    {
+      "threshold": 20000,
+      "window": 30,
+      "auto": 9,
+      "flagged": 0,
+      "review": 13
+    },
+    {
+      "threshold": 20000,
+      "window": 60,
+      "auto": 10,
+      "flagged": 0,
+      "review": 12
+    }
+  ],
+  "performanceMs": [
+    {
+      "workload": "exact",
+      "size": 5000,
+      "baselineMs": 258.62,
+      "indexedMs": 15.552
+    },
+    {
+      "workload": "nearby",
+      "size": 2000,
+      "baselineMs": 127.297,
+      "indexedMs": 4.875
+    },
+    {
+      "workload": "exact",
+      "size": 2000,
+      "baselineMs": 43.507,
+      "indexedMs": 6.07
+    },
+    {
+      "workload": "nearby",
+      "size": 2000,
+      "baselineMs": 115.159,
+      "indexedMs": 2.985
+    },
+    {
+      "workload": "exact",
+      "size": 2000,
+      "baselineMs": 47.467,
+      "indexedMs": 7.656
+    },
+    {
+      "workload": "nearby",
+      "size": 2000,
+      "baselineMs": 147.964,
+      "indexedMs": 6.391
+    },
+    {
+      "workload": "exact",
+      "size": 2000,
+      "baselineMs": 40.545,
+      "indexedMs": 5.876
+    },
+    {
+      "workload": "nearby",
+      "size": 2000,
+      "baselineMs": 117.315,
+      "indexedMs": 6.889
+    },
+    {
+      "workload": "exact",
+      "size": 2000,
+      "baselineMs": 39.889,
+      "indexedMs": 4.611
+    },
+    {
+      "workload": "nearby",
+      "size": 2000,
+      "baselineMs": 115.121,
+      "indexedMs": 3.66
+    },
+    {
+      "workload": "exact",
+      "size": 2000,
+      "baselineMs": 42.135,
+      "indexedMs": 7.204
+    },
+    {
+      "workload": "nearby",
+      "size": 2000,
+      "baselineMs": 160.693,
+      "indexedMs": 6.427
+    },
+    {
+      "workload": "exact",
+      "size": 2000,
+      "baselineMs": 57.597,
+      "indexedMs": 5.842
+    },
+    {
+      "workload": "nearby",
+      "size": 2000,
+      "baselineMs": 132.703,
+      "indexedMs": 3.525
+    }
+  ],
+  "finished": "2026-11-09T10:37:49.619Z",
+  "elapsedSeconds": 632
+}

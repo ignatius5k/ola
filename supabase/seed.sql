@@ -6,7 +6,7 @@ insert into auth.users (id, instance_id, aud, role, email, created_at, updated_a
   ('f033d956-0126-5eda-9c72-ca9e91ed15a9', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'bootstrap-analyst@ola.local', now(), now()),
   ('85e9dab4-6166-572b-a843-dbb63d7c339e', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'bootstrap-reviewer@ola.local', now(), now());
 insert into public.profiles (user_id, display_name) values ('f033d956-0126-5eda-9c72-ca9e91ed15a9', 'Bootstrap Analyst'), ('85e9dab4-6166-572b-a843-dbb63d7c339e', 'Bootstrap Reviewer');
-insert into public.workspaces (id, name, active_rule_version) values ('8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', 'Ola Demo', 'demo-1');
+insert into public.workspaces (id, name, active_rule_version) values ('8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', 'Ola Demo', 'SCRUM-9-v1');
 insert into public.workspace_members (workspace_id, user_id, role) values ('8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', 'f033d956-0126-5eda-9c72-ca9e91ed15a9', 'analyst'), ('8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '85e9dab4-6166-572b-a843-dbb63d7c339e', 'reviewer');
 
 -- Import batches: seed origin => file_object_path is NULL (trusted records). The "later" ledger batch is
@@ -71,30 +71,30 @@ insert into public.ledger_postings (id, workspace_id, import_batch_id, source_sy
 
 -- One case per collection. creator_id is NULL: trusted synthetic/system creation. Category/status are set by reconciliation (SCRUM-42).
 insert into public.cases (id, workspace_id, collection_id, workflow_status, creator_id) values
-  ('707cf1ab-e424-5461-8493-2910fc593ec5', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '57c7b02e-3082-58f2-96b8-f8d034764676', 'new', null),
-  ('32efdf47-1c26-52e8-945d-5d77e8d365cc', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', 'f7ff91d6-4fb4-5b98-960d-028c429fb809', 'new', null),
-  ('ebc3d50e-0a37-5ee6-a373-4b9153f78a52', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', 'ce566cce-9f72-54dd-bca9-eb831cc5a511', 'new', null),
-  ('c216b23f-e11e-5ab2-88d9-d86cb1c16d35', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '6631ca3f-565d-5ea7-b254-0b9e6c1d4801', 'new', null),
-  ('ca8ddf12-ce3d-53f5-942d-b58f61e21e7e', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '824192af-1939-50f2-9734-61f898c4873d', 'new', null),
-  ('53a1f3c0-c420-5747-893e-f369d5b39026', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', 'a29b54c5-32ef-569c-82ec-34c380d27e38', 'new', null),
-  ('16fd59c8-53d9-5e09-b884-9d6b40e4c51a', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '5a0c160c-f1c1-50ca-a906-cbfab1fa41a7', 'new', null),
-  ('cbbf0fe5-5486-5f0e-8e13-198028114b03', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '3fca0954-b4aa-598b-abd4-bfa140057e96', 'new', null),
-  ('924d02dc-e3f6-532e-a0a4-e27bc8a1bb85', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '925b2385-9b7c-55c2-b604-239c5ab36b23', 'new', null),
-  ('8a284f77-75a6-544b-8aaa-10637fc597eb', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '54484ed9-c49a-5be6-a930-c476a52788d7', 'new', null),
-  ('81fc1400-6e25-5317-b709-6a5c4b6e225d', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', 'eb5b15e7-1ba3-5706-bf74-613616ba3d9c', 'new', null),
-  ('c6637bd3-de5e-521a-b805-ca12353ca4b5', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '90b90e1b-f1f6-5cb5-bca0-ffe777f1424b', 'new', null),
-  ('6ad86227-3720-5464-bda1-a1c6f0148321', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '4557b116-b3fe-579a-80f1-b5d57eabe8d1', 'new', null),
-  ('afe3d9d5-7785-59ca-a6fb-fbe1e3e3dabe', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '05c7ec79-3a86-5f27-a11c-e33117248833', 'new', null),
-  ('90e8b1b0-b520-51e8-a3f3-4ca087dda7fd', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '351b05e3-721f-5335-b75b-cc24cdb3d2c0', 'new', null),
-  ('5638f8d8-c7fa-5a2a-851f-d3f01aa23c28', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '408ee144-ebf0-50ae-ba6e-f2f63a8625bf', 'new', null),
-  ('33a87a95-89e6-5406-af02-c0d0eecdbd4b', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '3f7be92e-6c82-5bbe-807c-3cba7469f077', 'new', null),
-  ('d9fa1dc6-4b64-5f6b-b706-46dae2950ab0', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', 'e869e262-fc17-5d92-877e-05dc3348ca64', 'new', null),
-  ('d2e8699a-5d3f-5688-a414-11db083fcfd6', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', 'ba165716-8286-58f5-a7be-e2eebf22feec', 'new', null),
-  ('f7a6b52e-8752-52ed-8dcd-be14bf3178ff', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', 'cfa3e370-614a-50f9-b66a-24947f1b1726', 'new', null),
-  ('f2047da9-660d-5382-beef-3a8945fc141a', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', 'e16222db-6bfc-587b-9a53-79fdb82e1792', 'new', null),
-  ('ad84b154-598b-5a6e-83d0-9dd1c28d3a40', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '7a664814-6266-5b83-8d97-61e3f2f92ff8', 'new', null),
-  ('c082514d-b018-51a0-8fe5-83847d223a5b', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '0d968b2e-a597-57a9-bd28-4438797f4d00', 'new', null),
-  ('9fca4598-f67c-59ad-970f-539c4ef9cd2c', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '940d9426-aaa5-586d-8070-bee967c7306a', 'new', null);
+  ('707cf1ab-e424-5461-8493-2910fc593ec5', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '57c7b02e-3082-58f2-96b8-f8d034764676', 'open', null),
+  ('32efdf47-1c26-52e8-945d-5d77e8d365cc', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', 'f7ff91d6-4fb4-5b98-960d-028c429fb809', 'open', null),
+  ('ebc3d50e-0a37-5ee6-a373-4b9153f78a52', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', 'ce566cce-9f72-54dd-bca9-eb831cc5a511', 'open', null),
+  ('c216b23f-e11e-5ab2-88d9-d86cb1c16d35', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '6631ca3f-565d-5ea7-b254-0b9e6c1d4801', 'open', null),
+  ('ca8ddf12-ce3d-53f5-942d-b58f61e21e7e', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '824192af-1939-50f2-9734-61f898c4873d', 'open', null),
+  ('53a1f3c0-c420-5747-893e-f369d5b39026', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', 'a29b54c5-32ef-569c-82ec-34c380d27e38', 'open', null),
+  ('16fd59c8-53d9-5e09-b884-9d6b40e4c51a', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '5a0c160c-f1c1-50ca-a906-cbfab1fa41a7', 'open', null),
+  ('cbbf0fe5-5486-5f0e-8e13-198028114b03', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '3fca0954-b4aa-598b-abd4-bfa140057e96', 'open', null),
+  ('924d02dc-e3f6-532e-a0a4-e27bc8a1bb85', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '925b2385-9b7c-55c2-b604-239c5ab36b23', 'open', null),
+  ('8a284f77-75a6-544b-8aaa-10637fc597eb', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '54484ed9-c49a-5be6-a930-c476a52788d7', 'open', null),
+  ('81fc1400-6e25-5317-b709-6a5c4b6e225d', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', 'eb5b15e7-1ba3-5706-bf74-613616ba3d9c', 'open', null),
+  ('c6637bd3-de5e-521a-b805-ca12353ca4b5', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '90b90e1b-f1f6-5cb5-bca0-ffe777f1424b', 'open', null),
+  ('6ad86227-3720-5464-bda1-a1c6f0148321', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '4557b116-b3fe-579a-80f1-b5d57eabe8d1', 'open', null),
+  ('afe3d9d5-7785-59ca-a6fb-fbe1e3e3dabe', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '05c7ec79-3a86-5f27-a11c-e33117248833', 'open', null),
+  ('90e8b1b0-b520-51e8-a3f3-4ca087dda7fd', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '351b05e3-721f-5335-b75b-cc24cdb3d2c0', 'open', null),
+  ('5638f8d8-c7fa-5a2a-851f-d3f01aa23c28', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '408ee144-ebf0-50ae-ba6e-f2f63a8625bf', 'open', null),
+  ('33a87a95-89e6-5406-af02-c0d0eecdbd4b', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '3f7be92e-6c82-5bbe-807c-3cba7469f077', 'open', null),
+  ('d9fa1dc6-4b64-5f6b-b706-46dae2950ab0', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', 'e869e262-fc17-5d92-877e-05dc3348ca64', 'open', null),
+  ('d2e8699a-5d3f-5688-a414-11db083fcfd6', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', 'ba165716-8286-58f5-a7be-e2eebf22feec', 'open', null),
+  ('f7a6b52e-8752-52ed-8dcd-be14bf3178ff', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', 'cfa3e370-614a-50f9-b66a-24947f1b1726', 'open', null),
+  ('f2047da9-660d-5382-beef-3a8945fc141a', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', 'e16222db-6bfc-587b-9a53-79fdb82e1792', 'open', null),
+  ('ad84b154-598b-5a6e-83d0-9dd1c28d3a40', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '7a664814-6266-5b83-8d97-61e3f2f92ff8', 'open', null),
+  ('c082514d-b018-51a0-8fe5-83847d223a5b', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '0d968b2e-a597-57a9-bd28-4438797f4d00', 'open', null),
+  ('9fca4598-f67c-59ad-970f-539c4ef9cd2c', '8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', '940d9426-aaa5-586d-8070-bee967c7306a', 'open', null);
 
 -- Append-only audit trail via the primitive (system actor).
 do $$ begin perform app.append_audit('8ebd5f4b-89ec-55b9-9e6d-ed58be293aa1', 'import_batch.accepted', 'system', null, p_import_batch_id => '8c881b56-713d-5548-807b-19dbaee95e38', p_payload => '{"origin":"seed","batch":"collections","kind":"collection"}'::jsonb); end $$;

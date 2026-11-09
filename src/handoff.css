@@ -1,0 +1,21 @@
+.analyst-handoff-panel .handoff-intro,.analyst-handoff-panel .handoff-helper,.handoff-review-note,.handoff-summary small{color:#687385;font-size:11px;line-height:1.55}
+.analyst-handoff-panel .handoff-intro{margin:0 0 18px}
+.analyst-handoff-panel .handoff-case-brief{display:grid;gap:3px;margin:0 0 10px;color:#687385;font-size:11px;line-height:1.5}
+.analyst-handoff-panel .handoff-case-brief strong{color:#414552;font-size:12px;font-weight:600}
+.analyst-handoff-panel .handoff-source-link{margin:0 0 18px;font-size:11px}
+.analyst-handoff-panel form{display:grid;gap:8px}
+.analyst-handoff-panel form label{display:flex;justify-content:space-between;color:#414552;font-size:11px;font-weight:550}
+.analyst-handoff-panel form label span{color:#8792a2;font-weight:400}
+.analyst-handoff-panel form select,.analyst-handoff-panel form textarea{width:100%;min-width:0;border:1px solid #d9dde4;border-radius:5px;background:#fff;color:#414552;padding:9px;font-size:12px}
+.analyst-handoff-panel form textarea{resize:vertical;line-height:1.5}
+.analyst-handoff-panel form .handoff-helper{margin:0 0 5px}
+.analyst-handoff-panel form .button{justify-self:start}
+.analyst-handoff-panel form .button:disabled{opacity:.55;cursor:not-allowed}
+.handoff-summary,.handoff-return,.handoff-blocked{border:1px solid #e1e4ec;border-radius:5px;background:#f7f8fa;padding:12px;margin:12px 0;color:#414552;font-size:11px;line-height:1.55}
+.handoff-summary .handoff-eyebrow{display:block;margin-bottom:5px;color:#635bff;font-size:10px;font-weight:600}
+.handoff-summary strong,.handoff-return strong{display:block;font-size:12px;font-weight:600}
+.handoff-summary p,.handoff-return p{margin:7px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.handoff-summary small{display:block}
+.handoff-return{border-color:#f0dca6;background:#fffaf0}
+.handoff-blocked{margin:0}
+.handoff-review-note{margin:10px 0}

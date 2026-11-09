@@ -1,10 +1,59 @@
 import { collections, originalLedger, laterLedger } from './data.js';
-import { RULE_SETTINGS, evaluateAutoRules, getAmountReview, largeTransactionThreshold } from './rules.js';
+import { AUTOMATION_POLICY_VERSION, RULE_SETTINGS, evaluateAutoRules, getAmountReview, largeTransactionThreshold, minorUnits } from './rules.js';
 
 export const money = (amount, currency = 'SGD') =>
   new Intl.NumberFormat('en-SG', { style: 'currency', currency }).format(amount);
 export const displayTime = iso => new Intl.DateTimeFormat('en-SG', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Singapore' }).format(new Date(iso));
-const minutesApart = (a, b) => Math.abs(new Date(a).getTime() - new Date(b).getTime()) / 60000;
+const ISO_OFFSET_TIME = /^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d{1,3})?)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/;
+function evidenceTimestamp(value) {
+  if (typeof value !== 'string' || !ISO_OFFSET_TIME.test(value)) return NaN;
+  const timestamp = Date.parse(value);
+  const calendarDay = new Date(`${value.slice(0, 10)}T00:00:00Z`);
+  return Number.isFinite(timestamp) && Number.isFinite(calendarDay.getTime()) && calendarDay.toISOString().slice(0, 10) === value.slice(0, 10) ? timestamp : NaN;
+}
+const minutesApart = (a, b) => Math.abs(evidenceTimestamp(a) - evidenceTimestamp(b)) / 60000;
+const minutesAfter = (later, earlier) => (evidenceTimestamp(later) - evidenceTimestamp(earlier)) / 60000;
+
+export function buildLedgerIndex(ledger) {
+  const byReference = new Map();
+  const byAmount = new Map();
+  const timeByRow = new WeakMap();
+  ledger.forEach((row, order) => {
+    const references = byReference.get(row.reference) || [];
+    references.push(row);
+    byReference.set(row.reference, references);
+    const amount = minorUnits(row.amount);
+    const time = evidenceTimestamp(row.time);
+    timeByRow.set(row, time);
+    if (amount === null || !Number.isFinite(time)) return;
+    const key = `${row.currency}\u0000${amount}`;
+    const entries = byAmount.get(key) || [];
+    entries.push({ row, order, time });
+    byAmount.set(key, entries);
+  });
+  for (const entries of byAmount.values()) entries.sort((left, right) => left.time - right.time || left.order - right.order);
+  return {
+    exact(reference) { return byReference.get(reference) || []; },
+    time(row) { return timeByRow.get(row); },
+    nearby(collection, windowMinutes, collectionTime = evidenceTimestamp(collection.time)) {
+      const amount = minorUnits(collection.amount);
+      if (amount === null || !Number.isFinite(collectionTime) || !Number.isFinite(windowMinutes) || windowMinutes < 0) return [];
+      const entries = byAmount.get(`${collection.currency}\u0000${amount}`) || [];
+      const earliest = collectionTime - windowMinutes * 60000;
+      const latest = collectionTime + windowMinutes * 60000;
+      let low = 0;
+      let high = entries.length;
+      while (low < high) {
+        const middle = (low + high) >>> 1;
+        if (entries[middle].time < earliest) low = middle + 1;
+        else high = middle;
+      }
+      const found = [];
+      for (let index = low; index < entries.length && entries[index].time <= latest; index++) found.push(entries[index]);
+      return found.sort((left, right) => left.order - right.order).map(entry => entry.row);
+    }
+  };
+}
 
 export function getCollections(state) {
   return [...collections, ...(Array.isArray(state.manualCollections) ? state.manualCollections : [])];
@@ -14,12 +63,22 @@ export function getLedger(state) {
   return state.processedLaterFile ? [...originalLedger, laterLedger] : originalLedger;
 }
 
-export function analyse(collection, ledger, settings = RULE_SETTINGS) {
-  const exactReference = ledger.filter(row => row.reference === collection.reference);
-  const nearby = ledger.filter(row => row.currency === collection.currency && row.amount === collection.amount && minutesApart(row.time, collection.time) <= settings.nearbyCandidateWindowMinutes);
+export function analyse(collection, ledger, settings = RULE_SETTINGS, index = null) {
+  const collectionTime = evidenceTimestamp(collection.time);
+  const exactReference = index ? index.exact(collection.reference) : ledger.filter(row => row.reference === collection.reference);
+  const nearby = exactReference.length ? [] : index
+    ? index.nearby(collection, settings.nearbyCandidateWindowMinutes, collectionTime)
+    : ledger.filter(row => row.currency === collection.currency && minorUnits(row.amount) !== null && minorUnits(row.amount) === minorUnits(collection.amount) && minutesApart(row.time, collection.time) <= settings.nearbyCandidateWindowMinutes);
   const candidates = exactReference.length ? exactReference : nearby;
   const amountReview = getAmountReview(collection, settings);
   const base = { collection, candidates, amountReview, checks: [], category: '', title: '', explanation: '', suggestion: '', autoLedgerId: null };
+
+  if (typeof collection.reference !== 'string' || !collection.reference.trim() || minorUnits(collection.amount) === null || !Number.isFinite(collectionTime)) return {
+    ...base, category: 'invalid', title: 'Collection evidence invalid',
+    explanation: 'The collection reference, amount, or time is missing or invalid.',
+    suggestion: 'Escalate and correct the source record before matching.',
+    checks: ['Collection evidence invalid', 'Automatic matching blocked']
+  };
 
   if (exactReference.length > 1) return {
     ...base, category: 'duplicate', title: 'Duplicate reference',
@@ -29,7 +88,7 @@ export function analyse(collection, ledger, settings = RULE_SETTINGS) {
   };
   if (exactReference.length === 1) {
     const row = exactReference[0];
-    const delay = minutesApart(row.time, collection.time);
+    const delay = ((index ? index.time(row) : evidenceTimestamp(row.time)) - collectionTime) / 60000;
     const autoRuleResults = evaluateAutoRules({ collection, row, exactReference, delayMinutes: delay }, settings);
     if (autoRuleResults.every(rule => rule.passed)) return {
       ...base, category: 'auto', title: delay > 2 ? 'Late posting matched' : 'Exact match',
@@ -44,14 +103,20 @@ export function analyse(collection, ledger, settings = RULE_SETTINGS) {
       suggestion: 'Escalate to investigate the original payment and reversal together.',
       checks: ['Reference found in ledger', 'Reversal event detected', 'Automatic matching blocked']
     };
+    if (minorUnits(row.amount) === null || minorUnits(row.fee, { allowZero: true }) === null || !Number.isFinite(index ? index.time(row) : evidenceTimestamp(row.time))) return {
+      ...base, category: 'invalid', title: 'Ledger evidence invalid',
+      explanation: 'The ledger posting amount, fee, or time is missing or invalid.',
+      suggestion: 'Escalate and correct the ledger source before matching.',
+      checks: ['Ledger evidence invalid', 'Automatic matching blocked']
+    };
     if (row.currency !== collection.currency) return {
       ...base, category: 'currency', title: 'Currency mismatch',
       explanation: `The collection is ${collection.currency}, while the ledger row is ${row.currency}.`,
       suggestion: 'Escalate and verify the transaction currency and foreign exchange records.',
       checks: ['Reference found in ledger', 'Currency differs', 'Automatic matching blocked']
     };
-    if (row.amount !== collection.amount) {
-      const explainedFee = Math.abs(row.amount + row.fee - collection.amount) < settings.feeExplanationTolerance && row.fee > 0;
+    if (minorUnits(row.amount) !== minorUnits(collection.amount)) {
+      const explainedFee = row.fee > 0 && minorUnits(row.amount) + minorUnits(row.fee, { allowZero: true }) === minorUnits(collection.amount);
       return {
         ...base, category: explainedFee ? 'fee' : 'amount', title: explainedFee ? 'Fee difference' : 'Amount mismatch',
         explanation: explainedFee ? `The ${money(row.fee)} fee explains the net amount, but a reviewer must confirm its treatment.` : 'The amounts do not match and no recorded fee fully explains the difference.',
@@ -59,11 +124,11 @@ export function analyse(collection, ledger, settings = RULE_SETTINGS) {
         checks: ['Unique reference found', 'Currency matches', explainedFee ? 'Fee explains the difference' : 'Amount remains unexplained', 'Automatic matching blocked']
       };
     }
-    if (delay > settings.maxPostingDelayMinutes) return {
+    if (!Number.isFinite(delay) || delay < 0 || delay > settings.maxPostingDelayMinutes) return {
       ...base, category: 'timing', title: 'Outside time window',
-      explanation: `The posting is more than ${settings.maxPostingDelayMinutes} minutes from the collection event.`,
-      suggestion: 'Verify the transaction identity and document the reason for the posting delay.',
-      checks: ['Unique reference found', 'Amount and currency match', 'Time window exceeded']
+      explanation: delay < 0 ? 'The posting predates the collection event.' : `The posting is outside the ${settings.maxPostingDelayMinutes}-minute window after collection.`,
+      suggestion: 'Verify the transaction identity and document the timing difference.',
+      checks: ['Unique reference found', 'Amount and currency match', 'Posting time outside the permitted window']
     };
     if (amountReview) return {
       ...base, category: 'high-value', title: 'Large transaction verification',
@@ -93,15 +158,44 @@ export function analyse(collection, ledger, settings = RULE_SETTINGS) {
 }
 
 function validReviewCandidate(item, row, settings) {
-  if (!row || row.type !== 'credit' || !Number.isFinite(row.amount) || row.amount < 0 || row.currency !== item.collection.currency) return false;
-  const delay = minutesApart(row.time, item.collection.time);
-  if (!Number.isFinite(delay) || delay > settings.maxPostingDelayMinutes) return false;
-  if (item.category === 'fee') return row.fee > 0 && Math.abs(row.amount + row.fee - item.collection.amount) < settings.feeExplanationTolerance;
-  return row.amount === item.collection.amount;
+  if (!row || row.type !== 'credit' || minorUnits(row.amount) === null || minorUnits(row.fee, { allowZero: true }) === null || row.currency !== item.collection.currency) return false;
+  const delay = minutesAfter(row.time, item.collection.time);
+  if (!Number.isFinite(delay) || delay < 0 || delay > settings.maxPostingDelayMinutes) return false;
+  if (item.category === 'fee') return row.fee > 0 && minorUnits(row.amount) + minorUnits(row.fee) === minorUnits(item.collection.amount);
+  return row.fee === 0 && minorUnits(row.amount) === minorUnits(item.collection.amount);
 }
 
 export function canReviewMatch(item, settings = RULE_SETTINGS) {
-  return Boolean(item && ['fee', 'reference', 'high-value'].includes(item.category) && settings.reviewerMatchCategories.includes(item.category) && item.candidates.some(row => validReviewCandidate(item, row, settings)));
+  return Boolean(item && ['fee', 'reference', 'high-value'].includes(item.category) && settings.reviewerMatchCategories.includes(item.category) && item.candidates.filter(row => validReviewCandidate(item, row, settings)).length === 1);
+}
+
+function policySnapshot(settings, currency) {
+  return {
+    version: AUTOMATION_POLICY_VERSION,
+    maxPostingDelayMinutes: settings.maxPostingDelayMinutes,
+    nearbyCandidateWindowMinutes: settings.nearbyCandidateWindowMinutes,
+    largeTransactionThreshold: largeTransactionThreshold(currency, settings),
+    reviewerMatchCategories: [...settings.reviewerMatchCategories]
+  };
+}
+
+function evidenceSnapshot(item, row, settings) {
+  const collection = item.collection;
+  return {
+    policy: policySnapshot(settings, collection.currency),
+    category: item.category,
+    collection: { id: collection.id, reference: collection.reference, amount: collection.amount, currency: collection.currency, time: collection.time },
+    posting: row ? { id: row.id, reference: row.reference, amount: row.amount, fee: row.fee, currency: row.currency, type: row.type, time: row.time } : null,
+    candidateIds: item.candidates.map(candidate => candidate.id).sort(),
+    checks: [...item.checks]
+  };
+}
+
+function hasCurrentReviewEvidence(item, decision, settings) {
+  if (!decision || !canReviewMatch(item, settings)) return false;
+  const candidate = item.candidates.find(row => row.id === decision.ledgerId);
+  if (!validReviewCandidate(item, candidate, settings)) return false;
+  return Boolean(decision.evidence && JSON.stringify(decision.evidence) === JSON.stringify(evidenceSnapshot(item, candidate, settings)));
 }
 
 function hasCurrentLargeVerification(item, decision, settings) {
@@ -134,39 +228,45 @@ export function recordDecision(state, { caseId, status, ledgerId, note, verified
   const detail = status === 'Reviewed match'
     ? `Matched ${candidate.id}.${amountDetail}${item.amountReview ? ' Transaction amount explicitly verified.' : ''} Reviewer reason: ${reason}`
     : `Escalated for further investigation.${amountDetail} Reviewer reason: ${reason}`;
-  const decision = { status, ledgerId: candidate?.id || null, note: reason, actor: state.role, verifiedLargeAmount: Boolean(candidate && item.amountReview && verifiedLargeAmount === true), amountReview: item.amountReview };
-  return addAudit({ ...state, decisions: { ...state.decisions, [item.id]: decision } }, { caseId: item.id, actor: state.role, action: status, detail });
+  const evidence = evidenceSnapshot(item, candidate, settings);
+  const decision = { status, ledgerId: candidate?.id || null, note: reason, actor: state.role, verifiedLargeAmount: Boolean(candidate && item.amountReview && verifiedLargeAmount === true), amountReview: item.amountReview, evidence };
+  return addAudit({ ...state, decisions: { ...state.decisions, [item.id]: decision } }, { caseId: item.id, actor: state.role, action: status, detail, evidence });
 }
 
 export function getCases(state, settings = RULE_SETTINGS) {
   const ledger = getLedger(state);
-  const analyses = getCollections(state).map(collection => analyse(collection, ledger, settings));
-  const manualIds = new Set((Array.isArray(state.manualCollections) ? state.manualCollections : []).map(collection => collection.id));
+  const index = buildLedgerIndex(ledger);
+  const analyses = getCollections(state).map(collection => analyse(collection, ledger, settings, index));
   const candidateOwners = new Map();
   for (const item of analyses) {
     for (const row of item.candidates) {
-      if (!candidateOwners.has(row.id)) candidateOwners.set(row.id, new Set());
-      candidateOwners.get(row.id).add(item.collection.id);
+      if (!candidateOwners.has(row.id)) candidateOwners.set(row.id, []);
+      candidateOwners.get(row.id).push(item);
     }
   }
   return analyses.map(original => {
     const collection = original.collection;
-    const shared = manualIds.has(collection.id) ? original.candidates.filter(row => candidateOwners.get(row.id).size > 1) : [];
+    const shared = original.candidates.filter(row => {
+      const owners = candidateOwners.get(row.id);
+      const exactOwners = owners.filter(item => item.collection.reference === row.reference);
+      return owners.length > 1 && (exactOwners.length !== 1 || exactOwners[0] !== original);
+    });
     const ledgerConflict = shared.length ? {
       ledgerIds: [...new Set(shared.map(row => row.id))].sort(),
-      caseIds: [...new Set(shared.flatMap(row => [...candidateOwners.get(row.id)]).filter(id => id !== collection.id))].sort()
+      caseIds: [...new Set(shared.flatMap(row => candidateOwners.get(row.id).map(item => item.collection.id)).filter(id => id !== collection.id))].sort()
     } : null;
     const analysis = ledgerConflict ? {
       ...original, category: 'ledger-conflict', title: 'Ledger posting already associated', autoLedgerId: null, ledgerConflict,
-      explanation: `Ledger posting ${ledgerConflict.ledgerIds.join(', ')} is already associated with ${ledgerConflict.caseIds.join(', ')}. This manual collection cannot use the same posting.`,
-      suggestion: `Review ${ledgerConflict.caseIds.join(', ')} and obtain separate ledger evidence for this manual collection.`,
+      explanation: `Ledger posting ${ledgerConflict.ledgerIds.join(', ')} is also a candidate for ${ledgerConflict.caseIds.join(', ')}. One posting cannot close multiple collections.`,
+      suggestion: `Review ${ledgerConflict.caseIds.join(', ')} and obtain distinct ledger evidence before closing either case.`,
       checks: ['Ledger evidence found', `Posting already associated with ${ledgerConflict.caseIds.join(', ')}`, 'Automatic matching and reviewed matching blocked']
     } : original;
     const decision = state.decisions?.[collection.id];
+    const needsEvidenceRecheck = decision?.status === 'Reviewed match' && !hasCurrentReviewEvidence(analysis, decision, settings);
     const needsLargeVerification = analysis.amountReview?.required && decision?.status === 'Reviewed match' && !hasCurrentLargeVerification(analysis, decision, settings);
     const hasConflictingDecision = ledgerConflict && decision?.status === 'Reviewed match';
-    const status = needsLargeVerification || hasConflictingDecision ? 'Needs review' : decision?.status || (analysis.category === 'auto' ? 'Auto matched' : analysis.category === 'missing' ? 'Awaiting evidence' : 'Needs review');
-    return { ...analysis, id: collection.id, status, decision };
+    const status = needsEvidenceRecheck || needsLargeVerification || hasConflictingDecision ? 'Needs review' : decision?.status || (analysis.category === 'auto' ? 'Auto matched' : analysis.category === 'missing' ? 'Awaiting evidence' : 'Needs review');
+    return { ...analysis, id: collection.id, status, decision, requiresReverification: Boolean(needsEvidenceRecheck || needsLargeVerification || hasConflictingDecision) };
   });
 }
 
@@ -198,10 +298,8 @@ function manualAmount(value) {
 
 function manualTime(value) {
   const text = typeof value === 'string' ? value.trim() : '';
-  const iso = /^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d{1,3})?)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/;
-  const timestamp = Date.parse(text);
-  const calendarDay = new Date(`${text.slice(0, 10)}T00:00:00Z`);
-  if (!iso.test(text) || !Number.isFinite(timestamp) || !Number.isFinite(calendarDay.getTime()) || calendarDay.toISOString().slice(0, 10) !== text.slice(0, 10)) throw new Error('Enter a valid ISO date and time with a timezone.');
+  const timestamp = evidenceTimestamp(text);
+  if (!Number.isFinite(timestamp)) throw new Error('Enter a valid ISO date and time with a timezone.');
   return new Date(timestamp).toISOString();
 }
 
@@ -230,8 +328,8 @@ export function addManualTransaction(state, input, settings = RULE_SETTINGS) {
   let next = { ...state, manualCollections: [...(Array.isArray(state.manualCollections) ? state.manualCollections : []), collection] };
   next = addAudit(next, { caseId: id, actor: state.role, action: 'Manual transaction added', detail: `Created a collection for ${counterparty}. Reference: ${reference}. Amount: ${currency} ${amount.toFixed(2)}. Channel: ${channel}. Collection time: ${time}.` });
   const item = getCases(next, settings).find(candidate => candidate.id === id);
-  if (item.status === 'Auto matched') next = addAudit(next, { caseId: id, actor: 'Rules engine', action: 'Auto matched', detail: `Matched ${item.autoLedgerId}. All automatic matching rules passed.` });
-  if (item.amountReview?.required) next = addAudit(next, { caseId: id, actor: 'Rules engine', action: 'Large transaction flagged', detail: largeTransactionFlagDetail(item.amountReview), amountReview: item.amountReview });
+  if (item.status === 'Auto matched') next = addAudit(next, { caseId: id, actor: 'Rules engine', action: 'Auto matched', detail: `Matched ${item.autoLedgerId}. All automatic matching rules passed under ${AUTOMATION_POLICY_VERSION}.`, evidence: evidenceSnapshot(item, item.candidates.find(row => row.id === item.autoLedgerId), settings) });
+  if (item.amountReview?.required) next = addAudit(next, { caseId: id, actor: 'Rules engine', action: 'Large transaction flagged', detail: largeTransactionFlagDetail(item.amountReview), amountReview: item.amountReview, evidence: evidenceSnapshot(item, item.candidates[0], settings) });
   return next;
 }
 
@@ -239,23 +337,23 @@ export function createInitialState(settings = RULE_SETTINGS) {
   const started = '2026-10-24T09:00:00+08:00';
   const initial = {
     version: 2, role: 'Analyst', runs: 1, laterFileReceived: false, processedLaterFile: false,
-    decisions: {}, manualCollections: [],
+    decisions: {}, handoffs: {}, manualCollections: [],
     audit: []
   };
   const cases = getCases(initial, settings);
   const automatic = cases.filter(item => item.category === 'auto');
   const flagged = cases.filter(item => item.amountReview);
   return { ...initial, audit: [
-    ...automatic.map((item, index) => ({ id: `E-${index + 1}`, caseId: item.id, actor: 'Rules engine', action: 'Auto matched', detail: `Matched ${item.autoLedgerId}. All automatic matching rules passed.`, time: started })),
-    ...flagged.map((item, index) => ({ id: `E-${automatic.length + index + 1}`, caseId: item.id, actor: 'Rules engine', action: 'Large transaction flagged', detail: largeTransactionFlagDetail(item.amountReview), amountReview: { ...item.amountReview }, time: started })),
+    ...automatic.map((item, index) => ({ id: `E-${index + 1}`, caseId: item.id, actor: 'Rules engine', action: 'Auto matched', detail: `Matched ${item.autoLedgerId}. All automatic matching rules passed under ${AUTOMATION_POLICY_VERSION}.`, evidence: evidenceSnapshot(item, item.candidates.find(row => row.id === item.autoLedgerId), settings), time: started })),
+    ...flagged.map((item, index) => ({ id: `E-${automatic.length + index + 1}`, caseId: item.id, actor: 'Rules engine', action: 'Large transaction flagged', detail: largeTransactionFlagDetail(item.amountReview), amountReview: { ...item.amountReview }, evidence: evidenceSnapshot(item, item.candidates[0], settings), time: started })),
     { id: `E-${automatic.length + flagged.length + 1}`, caseId: null, actor: 'Rules engine', action: 'Batch completed', detail: `${getCollections(initial).length} collections compared with the first ledger file; ${automatic.length} matched automatically; ${flagged.length} flagged for large transaction verification.`, time: started }
   ] };
 }
 
-export function addAudit(state, { caseId = null, actor, action, detail, amountReview, ledgerConflict }) {
+export function addAudit(state, { caseId = null, actor, action, detail, amountReview, ledgerConflict, evidence }) {
   return {
     ...state,
-    audit: [{ id: `E-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, caseId, actor, action, detail, ...(amountReview ? { amountReview: { ...amountReview } } : {}), ...(ledgerConflict ? { ledgerConflict: { ledgerIds: [...ledgerConflict.ledgerIds], caseIds: [...ledgerConflict.caseIds] } } : {}), time: new Date().toISOString() }, ...state.audit]
+    audit: [{ id: `E-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, caseId, actor, action, detail, ...(amountReview ? { amountReview: { ...amountReview } } : {}), ...(ledgerConflict ? { ledgerConflict: { ledgerIds: [...ledgerConflict.ledgerIds], caseIds: [...ledgerConflict.caseIds] } } : {}), ...(evidence ? { evidence: structuredClone(evidence) } : {}), time: new Date().toISOString() }, ...state.audit]
   };
 }
 
@@ -264,18 +362,33 @@ export function runBatch(state, settings = RULE_SETTINGS) {
   let next = { ...state, runs: state.runs + 1, processedLaterFile: state.laterFileReceived };
   const evaluated = getCases(next, settings);
   const lateCaseMatched = newlyProcessed && evaluated.find(item => item.id === 'COL-1014')?.status === 'Auto matched';
-  if (lateCaseMatched) next = addAudit(next, { actor: 'Rules engine', action: 'Auto matched', caseId: 'COL-1014', detail: `New ledger file supplied LED-5009. All automatic matching rules passed, including the ${settings.maxPostingDelayMinutes}-minute window.` });
+  for (const item of evaluated.filter(candidate => candidate.status === 'Auto matched')) {
+    const evidence = evidenceSnapshot(item, item.candidates.find(row => row.id === item.autoLedgerId), settings);
+    const logged = next.audit.some(event => event.caseId === item.id && event.action === 'Auto matched' && JSON.stringify(event.evidence) === JSON.stringify(evidence));
+    if (!logged) next = addAudit(next, { actor: 'Rules engine', action: 'Auto matched', caseId: item.id, detail: `Matched ${item.autoLedgerId}. All automatic matching rules passed under ${AUTOMATION_POLICY_VERSION}.`, evidence });
+  }
+  const formerlyAutoMatched = new Set(next.audit.filter(event => event.action === 'Auto matched').map(event => event.caseId));
+  for (const item of evaluated.filter(candidate => candidate.status !== 'Auto matched' && formerlyAutoMatched.has(candidate.id))) {
+    const evidence = evidenceSnapshot(item, item.candidates[0], settings);
+    const logged = next.audit.some(event => event.caseId === item.id && event.action === 'Automatic match requires review' && JSON.stringify(event.evidence) === JSON.stringify(evidence));
+    if (!logged) next = addAudit(next, { actor: 'Rules engine', action: 'Automatic match requires review', caseId: item.id, detail: 'A previously automatic match no longer passes the current evidence or policy checks. The earlier match remains in history; the case needs review.', evidence });
+  }
   for (const item of evaluated.filter(candidate => candidate.amountReview?.required)) {
     const detail = largeTransactionFlagDetail(item.amountReview);
     const logged = next.audit.some(event => event.caseId === item.id && event.action === 'Large transaction flagged' &&
       (event.amountReview ? sameAmountReview(event.amountReview, item.amountReview) : event.detail === detail));
-    if (!logged) next = addAudit(next, { caseId: item.id, actor: 'Rules engine', action: 'Large transaction flagged', detail, amountReview: item.amountReview });
+    if (!logged) next = addAudit(next, { caseId: item.id, actor: 'Rules engine', action: 'Large transaction flagged', detail, amountReview: item.amountReview, evidence: evidenceSnapshot(item, item.candidates[0], settings) });
   }
   for (const item of evaluated.filter(candidate => candidate.ledgerConflict)) {
     const detail = `${item.explanation} Automatic matching and reviewed matching are blocked.`;
     const logged = next.audit.some(event => event.caseId === item.id && event.action === 'Ledger posting conflict' &&
       (event.ledgerConflict ? JSON.stringify(event.ledgerConflict) === JSON.stringify(item.ledgerConflict) : event.detail === detail));
-    if (!logged) next = addAudit(next, { caseId: item.id, actor: 'Rules engine', action: 'Ledger posting conflict', detail, ledgerConflict: item.ledgerConflict });
+    if (!logged) next = addAudit(next, { caseId: item.id, actor: 'Rules engine', action: 'Ledger posting conflict', detail, ledgerConflict: item.ledgerConflict, evidence: evidenceSnapshot(item, null, settings) });
+  }
+  for (const item of evaluated.filter(candidate => candidate.requiresReverification)) {
+    const evidence = evidenceSnapshot(item, item.candidates.find(row => row.id === item.decision?.ledgerId), settings);
+    const logged = next.audit.some(event => event.caseId === item.id && event.action === 'Approval requires re-verification' && JSON.stringify(event.evidence) === JSON.stringify(evidence));
+    if (!logged) next = addAudit(next, { caseId: item.id, actor: 'Rules engine', action: 'Approval requires re-verification', detail: 'A prior approval remains in history, but current evidence or policy no longer supports closure. Reviewer verification is required again.', evidence });
   }
   next = addAudit(next, { actor: state.role, action: 'Batch run', detail: newlyProcessed ? lateCaseMatched ? `Second ledger file processed; one waiting case resolved. ${getCollections(next).length} collections checked.` : `Second ledger file processed; the waiting case still requires review under the current rules. ${getCollections(next).length} collections checked.` : `Batch rechecked: ${getCollections(next).length} collections. Existing decisions were preserved.` });
   return next;

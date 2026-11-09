@@ -1,4 +1,14 @@
 .dashboard-overview .today-layout{margin-bottom:34px}
+.dashboard-overview .dashboard-role-copy{margin:5px 0 0;color:#687385;font-size:11px;line-height:1.5}
+.dashboard-overview .dashboard-queue-note{margin:-8px 0 8px;color:#8792a2;font-size:10px;line-height:1.5}
+.dashboard-overview .dashboard-handoff-label{display:inline-block;margin:0 0 8px;color:#635bff;font-size:10px;font-weight:600}
+.dashboard-overview .dashboard-queue-breakdown{margin-top:18px}
+.dashboard-overview .dashboard-queue-breakdown dl{margin:0}
+.dashboard-overview .dashboard-queue-breakdown dl>div{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid var(--line)}
+.dashboard-overview .dashboard-queue-breakdown dt{color:#687385;font-size:11px}
+.dashboard-overview .dashboard-queue-breakdown dd{margin:0;color:#414552;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.dashboard-overview .dashboard-queue-breakdown p{display:flex;justify-content:space-between;gap:16px;margin:20px 0 0;color:#8792a2;font-size:10px;line-height:1.5}
+.dashboard-overview .dashboard-queue-breakdown p strong{color:#414552;font-weight:600;white-space:nowrap}
 .dashboard-overview .today-labels{justify-content:flex-start;flex-wrap:wrap;gap:10px 28px}
 .dashboard-overview .dashboard-metric-control{position:relative;display:inline-flex;align-items:center;color:#596579;border-radius:3px}
 .dashboard-overview .dashboard-metric-control>select{appearance:none;-webkit-appearance:none;field-sizing:content;max-width:100%;margin:0;padding:2px 20px 2px 0;border:0;border-radius:3px;background:transparent;color:inherit;font-family:inherit;font-size:11px;font-weight:400;line-height:1.4;cursor:pointer;box-shadow:none}
@@ -45,3 +55,72 @@
 .dashboard-overview .dashboard-metric-readout{animation:ola-metric-enter 350ms cubic-bezier(.16,1,.3,1) both;animation-iteration-count:1}
 @keyframes ola-metric-enter{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){.dashboard-overview .dashboard-metric-readout{animation:none;opacity:1;transform:none}}
+
+/* Role work dashboard, following the original Ola draft. */
+.ola-dashboard .page-heading{padding-bottom:17px;border-bottom:1px solid #ebeef1}
+.ola-dashboard .ola-dashboard-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:24px 0 28px}
+.ola-dashboard-card{display:flex;flex-direction:column;align-items:flex-start;min-width:0;min-height:133px;padding:16px 18px 15px;border:1px solid #e5e8ed;border-radius:6px;background:#fff;color:#30313d;text-align:left;cursor:pointer}
+.ola-dashboard-card-primary{border-top:3px solid #635bff;padding-top:14px}
+.ola-dashboard-card:hover,.ola-dashboard-card.is-selected{border-color:#bcb5ff;background:#faf9ff}
+.ola-dashboard-count{font-size:28px;line-height:1.2;font-weight:650;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.ola-dashboard-card-label{margin-top:4px;font-size:12px;font-weight:600}
+.ola-dashboard-card-hint{margin-top:7px;color:#687385;font-size:10px;line-height:1.5}
+.ola-dashboard-card-action{display:flex;align-items:center;gap:4px;margin-top:auto;padding-top:12px;color:#635bff;font-size:11px;font-weight:600}
+.ola-dashboard-card:hover .ola-dashboard-card-action{text-decoration:underline}
+.ola-dashboard-work-heading,.ola-dashboard-health-heading{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:14px}
+.ola-dashboard-work-heading h2,.ola-dashboard-health-heading h2{margin:0;font-size:18px;font-weight:600;letter-spacing:-.25px}
+.ola-dashboard-work-heading>span{font-size:11px;color:#687385;text-align:right}
+.ola-dashboard-work-layout{display:grid;grid-template-columns:minmax(0,1.62fr) minmax(270px,1fr);gap:20px;align-items:stretch}
+.ola-dashboard-queue,.ola-dashboard-focus{min-width:0;border:1px solid #e5e8ed;border-radius:6px;background:#fff}
+.ola-dashboard-queue{display:flex;flex-direction:column}
+.ola-dashboard-queue-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid #ebeef1}
+.ola-dashboard-queue-head strong{font-size:13px;font-weight:600}
+.ola-dashboard-text-action,.ola-dashboard-health-card button{display:inline-flex;align-items:center;gap:4px;border:0;padding:0;background:none;color:#635bff;font-size:11px;font-weight:600;cursor:pointer;text-align:left}
+.ola-dashboard-text-action:hover,.ola-dashboard-health-card button:hover{text-decoration:underline}
+.ola-dashboard-queue-list{flex:1}
+.ola-dashboard-queue-caption{margin:0;padding:10px 18px;border-bottom:1px solid #f0f2f4;color:#687385;font-size:10px;line-height:1.5}
+.ola-dashboard-group-label{padding:9px 18px 6px;color:#687385;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.ola-dashboard-queue-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:14px;width:100%;min-height:72px;padding:15px 18px;border:0;border-bottom:1px solid #f0f2f4;background:#fff;color:#30313d;text-align:left;cursor:pointer}
+.ola-dashboard-queue-row:hover{background:#f8f8fc}
+.ola-dashboard-queue-row.is-selected{border-left:3px solid #635bff;padding-left:15px;background:#faf9ff}
+.ola-dashboard-row-main{min-width:0}
+.ola-dashboard-row-main strong{display:block;font-size:12px;font-weight:600}
+.ola-dashboard-row-main small{display:block;margin-top:4px;color:#687385;font-size:10px;line-height:1.45;overflow-wrap:anywhere}
+.ola-dashboard-row-side{display:flex;flex-direction:column;align-items:flex-end;text-align:right;white-space:nowrap}
+.ola-dashboard-row-side>strong{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.ola-dashboard-badge{display:inline-block;margin-top:5px;padding:3px 5px;border-radius:3px;font-size:9px;font-weight:550;white-space:nowrap}
+.ola-dashboard-badge.amber{color:#8a5a00;background:#fff6da;border:1px solid #f5dda0}
+.ola-dashboard-badge.investigate{color:#fff;background:#7042c0;border:1px solid #7042c0;font-weight:600}
+.ola-dashboard-badge.purple{color:#635bff;background:#f1efff;border:1px solid #dfdaff}
+.ola-dashboard-badge.gray{color:#687385;background:#f2f4f7;border:1px solid #dde2e8}
+.ola-dashboard-queue-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 18px;color:#8792a2;font-size:10px}
+.ola-dashboard-queue-footer .ola-dashboard-text-action{flex:none}
+.ola-dashboard-empty{min-height:185px;padding:20px 18px;color:#414552}
+.ola-dashboard-empty strong{font-size:12px}
+.ola-dashboard-empty p{max-width:360px;color:#687385;font-size:11px;line-height:1.5}
+.ola-dashboard-focus{padding:18px}
+.ola-dashboard-eyebrow{color:#687385;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.ola-dashboard-focus h3{margin:7px 0 4px;font-size:18px;line-height:1.3}
+.ola-dashboard-amount{display:block;margin:0 0 15px;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+.ola-dashboard-focus dl{display:grid;margin:0 0 16px}
+.ola-dashboard-focus dl>div{display:grid;grid-template-columns:105px minmax(0,1fr);gap:10px;padding:9px 0;border-top:1px solid #ebeef1;font-size:11px;line-height:1.5}
+.ola-dashboard-focus dt{color:#687385}
+.ola-dashboard-focus dd{margin:0;color:#414552;overflow-wrap:anywhere}
+.ola-dashboard-note{margin:0 0 16px;padding:11px 12px;border-radius:5px;background:#f7f8fa;color:#414552;font-size:11px;line-height:1.55;overflow-wrap:anywhere}
+.ola-dashboard-note strong{display:block;margin-bottom:3px}
+.ola-dashboard-primary-action{display:inline-flex;align-items:center;gap:8px;min-height:34px;padding:8px 12px;font-size:11px;font-weight:600}
+.ola-dashboard-subcopy{display:block;margin-top:11px;color:#8792a2;font-size:10px;line-height:1.5}
+.ola-dashboard-focus-empty{font-size:11px;line-height:1.5;color:#687385}
+.ola-dashboard-health{margin-top:31px}
+.ola-dashboard-health-heading p{margin:0;color:#8792a2;font-size:10px}
+.ola-dashboard-health-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.ola-dashboard-health-card{min-width:0;padding:15px 2px;border-top:1px solid #ebeef1}
+.ola-dashboard-health-card>span{display:block;color:#687385;font-size:11px}
+.ola-dashboard-health-card>strong{display:block;margin-top:7px;font-size:18px;font-weight:600;line-height:1.3;overflow-wrap:anywhere}
+.ola-dashboard-health-card p{margin:6px 0 0;color:#8792a2;font-size:10px;line-height:1.5;overflow-wrap:anywhere}
+.ola-dashboard-health-card button{margin-top:9px}
+.ola-dashboard-progress{height:5px;margin-top:11px;border-radius:3px;background:#f1f3f6;overflow:hidden}
+.ola-dashboard-progress>span{display:block;height:100%;background:#9474f5}
+@media(max-width:1000px){.ola-dashboard-work-layout{grid-template-columns:minmax(0,1.3fr) minmax(240px,1fr);gap:12px}.ola-dashboard-card{padding-left:13px;padding-right:13px}.ola-dashboard-focus{padding:15px}}
+@media(max-width:760px){.ola-dashboard .ola-dashboard-cards{gap:8px}.ola-dashboard-card{min-height:143px}.ola-dashboard-work-layout{grid-template-columns:1fr}.ola-dashboard-focus{min-height:0}.ola-dashboard-health-grid{gap:9px}.ola-dashboard-health-card>strong{font-size:15px}}
+@media(max-width:540px){.ola-dashboard .page-heading{align-items:flex-start}.ola-dashboard .ola-dashboard-cards{grid-template-columns:1fr;gap:8px;margin:18px 0 25px}.ola-dashboard-card{min-height:0;padding:12px 14px}.ola-dashboard-card-primary{padding-top:10px}.ola-dashboard-count{font-size:24px}.ola-dashboard-card-action{padding-top:8px}.ola-dashboard-work-heading,.ola-dashboard-health-heading{align-items:flex-start;flex-direction:column;gap:5px}.ola-dashboard-work-heading>span{text-align:left}.ola-dashboard-health-grid{grid-template-columns:1fr}.ola-dashboard-health-card{padding:12px 2px}.ola-dashboard-health-card>strong{font-size:17px}.ola-dashboard-queue-footer{align-items:flex-start;flex-direction:column}}

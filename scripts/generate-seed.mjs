@@ -4,6 +4,8 @@
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { collections, originalLedger, laterLedger } from '../src/data.js';
+import { WORKFLOW_STATUS } from '../shared/domain.js';
+import { AUTOMATION_POLICY_VERSION } from '../src/rules.js';
 
 const NS = 'f3c1a0de-5a39-4b7e-9c11-0a1a00000039'; // fixed namespace for Database Foundation seed ids
 const sha256 = v => createHash('sha256').update(v).digest('hex');
@@ -59,7 +61,7 @@ w(`insert into auth.users (id, instance_id, aud, role, email, created_at, update
 w(`  (${q(analyst)}, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'bootstrap-analyst@ola.local', now(), now()),`);
 w(`  (${q(reviewer)}, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'bootstrap-reviewer@ola.local', now(), now());`);
 w(`insert into public.profiles (user_id, display_name) values (${q(analyst)}, 'Bootstrap Analyst'), (${q(reviewer)}, 'Bootstrap Reviewer');`);
-w(`insert into public.workspaces (id, name, active_rule_version) values (${q(ws)}, 'Ola Demo', 'demo-1');`);
+w(`insert into public.workspaces (id, name, active_rule_version) values (${q(ws)}, 'Ola Demo', ${q(AUTOMATION_POLICY_VERSION)});`);
 w(`insert into public.workspace_members (workspace_id, user_id, role) values (${q(ws)}, ${q(analyst)}, 'analyst'), (${q(ws)}, ${q(reviewer)}, 'reviewer');`);
 w('');
 w('-- Import batches: seed origin => file_object_path is NULL (trusted records). The "later" ledger batch is');
@@ -75,7 +77,7 @@ w(ledRows.map(l => `  (${q(l.uuid)}, ${q(ws)}, ${q(l.batch.id)}, ${q(SYSTEM_LED)
 w('');
 w('-- One case per collection. creator_id is NULL: trusted synthetic/system creation. Category/status are set by reconciliation (SCRUM-42).');
 w('insert into public.cases (id, workspace_id, collection_id, workflow_status, creator_id) values');
-w(colRows.map(c => `  (${q(c.caseId)}, ${q(ws)}, ${q(c.uuid)}, 'new', null)`).join(',\n') + ';');
+w(colRows.map(c => `  (${q(c.caseId)}, ${q(ws)}, ${q(c.uuid)}, ${q(WORKFLOW_STATUS.OPEN)}, null)`).join(',\n') + ';');
 w('');
 w('-- Append-only audit trail via the primitive (system actor).');
 for (const [k, b] of Object.entries(batches)) {
