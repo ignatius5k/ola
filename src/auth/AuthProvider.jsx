@@ -11,12 +11,13 @@ import { supabase } from '../lib/supabase';
 
 const AuthContext = createContext(null);
 
-export function AuthProvider({ children }) {
+export function AuthProvider({ children, client = supabase, focusTarget = window }) {
   const [session, setSession] = useState(null);
   const [memberships, setMemberships] = useState([]);
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(null);
   const [authInitialised, setAuthInitialised] = useState(false);
   const [membershipLoading, setMembershipLoading] = useState(false);
+  const [verifiedMembershipUserId, setVerifiedMembershipUserId] = useState(null);
   const [authError, setAuthError] = useState('');
 
   const authEventSeen = useRef(false);
@@ -32,6 +33,7 @@ export function AuthProvider({ children }) {
       setMemberships([]);
       setSelectedWorkspaceId(null);
       setMembershipLoading(false);
+      setVerifiedMembershipUserId(null);
       return;
     }
 
@@ -39,7 +41,7 @@ export function AuthProvider({ children }) {
     setAuthError('');
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from('workspace_members')
         .select(`
           workspace_id,
@@ -61,6 +63,7 @@ export function AuthProvider({ children }) {
       const activeMemberships = data ?? [];
 
       setMemberships(activeMemberships);
+      setVerifiedMembershipUserId(userId);
       setSelectedWorkspaceId(current =>
         activeMemberships.some(item => item.workspace_id === current)
           ? current
@@ -70,8 +73,7 @@ export function AuthProvider({ children }) {
       );
     } catch {
       if (requestId === requestIdRef.current) {
-        setMemberships([]);
-        setSelectedWorkspaceId(null);
+        setVerifiedMembershipUserId(userId);
         setAuthError(
           'Unable to verify workspace access. Check your connection and try again.'
         );
@@ -81,14 +83,14 @@ export function AuthProvider({ children }) {
         setMembershipLoading(false);
       }
     }
-  }, [userId]);
+  }, [client, userId]);
 
   useEffect(() => {
     let mounted = true;
 
     const {
       data: { subscription }
-    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    } = client.auth.onAuthStateChange((_event, nextSession) => {
       authEventSeen.current = true;
 
       if (!mounted) return;
@@ -102,6 +104,8 @@ export function AuthProvider({ children }) {
         requestIdRef.current += 1;
         setMemberships([]);
         setSelectedWorkspaceId(null);
+        setMembershipLoading(false);
+        setVerifiedMembershipUserId(null);
         setAuthError('');
       }
 
@@ -111,7 +115,7 @@ export function AuthProvider({ children }) {
 
     async function initialise() {
       try {
-        const { data, error } = await supabase.auth.getSession();
+        const { data, error } = await client.auth.getSession();
 
         if (error) throw error;
 
@@ -141,7 +145,7 @@ export function AuthProvider({ children }) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [client]);
 
   useEffect(() => {
     if (authInitialised) {
@@ -154,18 +158,18 @@ export function AuthProvider({ children }) {
       if (userId) refreshMembership();
     }
 
-    window.addEventListener('focus', handleFocus);
+    focusTarget.addEventListener('focus', handleFocus);
 
     return () => {
-      window.removeEventListener('focus', handleFocus);
+      focusTarget.removeEventListener('focus', handleFocus);
     };
-  }, [userId, refreshMembership]);
+  }, [focusTarget, userId, refreshMembership]);
 
   async function signIn(email, password) {
     setAuthError('');
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error } = await client.auth.signInWithPassword({
         email,
         password
       });
@@ -186,7 +190,7 @@ async function signOut() {
   setAuthError('');
 
   try {
-    const { error } = await supabase.auth.signOut();
+    const { error } = await client.auth.signOut();
 
     if (error) {
       setAuthError('Unable to sign out. Please try again.');
@@ -201,6 +205,10 @@ async function signOut() {
 }
 
   function selectWorkspace(workspaceId) {
+    if (membershipLoading) {
+      return;
+    }
+
     if (!memberships.some(item => item.workspace_id === workspaceId)) {
       return;
     }
@@ -212,7 +220,11 @@ async function signOut() {
     memberships.find(item => item.workspace_id === selectedWorkspaceId) ??
     (memberships.length === 1 ? memberships[0] : null);
 
-  const status = !authInitialised || (userId && membershipLoading)
+  const status = !authInitialised ||
+      (userId && (
+        verifiedMembershipUserId !== userId ||
+        (membershipLoading && memberships.length === 0)
+      ))
     ? 'loading'
     : !session
       ? 'signed_out'
@@ -221,6 +233,8 @@ async function signOut() {
         : memberships.length === 0
           ? 'forbidden'
           : 'ready';
+  const actionsAllowed = status === 'ready' && !membershipLoading;
+  const membershipRole = membership?.active ? membership.role : null;
 
   return (
     <AuthContext.Provider
@@ -230,9 +244,12 @@ async function signOut() {
         memberships,
         membership,
         workspace: membership?.workspaces ?? null,
-        role: membership?.active ? membership.role : null,
+        role: actionsAllowed ? membershipRole : null,
+        displayRole: membershipRole,
         workspaceId: membership?.workspace_id ?? null,
         loading: status === 'loading',
+        accessChecking: Boolean(userId && membershipLoading),
+        actionsAllowed,
         status,
         authError,
         signIn,

@@ -52,7 +52,9 @@ export async function requireWorkspaceMember(
   allowedRoles: Array<"analyst" | "reviewer"> = [],
   dependencies: Dependencies = {},
 ): Promise<AuthResult> {
-  const requestId = (dependencies.createRequestId ?? crypto.randomUUID)();
+  const requestId = dependencies.createRequestId
+    ? dependencies.createRequestId()
+    : crypto.randomUUID();
 
   const authorization = request.headers.get("Authorization") ?? "";
   const tokenMatch = authorization.match(/^Bearer\s+(.+)$/i);

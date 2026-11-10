@@ -61,3 +61,45 @@
   font-size: 12px;
   text-align: center;
 }
+
+.auth-workspace-shell {
+  position: relative;
+  min-height: 100vh;
+}
+
+.auth-refresh-guard {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 18px;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+  background: rgba(248, 250, 252, 0.55);
+  cursor: wait;
+}
+
+.auth-refresh-card {
+  width: min(420px, calc(100% - 32px));
+  padding: 18px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+  cursor: default;
+}
+
+.auth-refresh-card p {
+  margin: 8px 0 0;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.auth-refresh-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}

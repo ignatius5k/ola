@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AuthProvider, useAuth } from './auth/AuthProvider';
+import { WorkspaceAccessShell } from './auth/WorkspaceAccessShell';
 import { createRoot } from 'react-dom/client';
 import {
   House, List, CheckCircle, ClockCounterClockwise, Database, MagnifyingGlass,
@@ -138,6 +139,7 @@ function AuthGate() {
     membership,
     memberships,
     loading,
+    accessChecking,
     status,
     authError,
     selectWorkspace,
@@ -153,7 +155,10 @@ function AuthGate() {
     return <SignInScreen />;
   }
 
-  if (status === 'error') {
+  const hasWorkspaceAccess = membership?.active &&
+    ['analyst', 'reviewer'].includes(membership.role);
+
+  if (status === 'error' && !hasWorkspaceAccess) {
     return (
       <main className="auth-screen">
         <section className="auth-card">
@@ -197,6 +202,7 @@ function AuthGate() {
             <button
               key={item.workspace_id}
               className="button outline"
+              disabled={accessChecking}
               onClick={() => selectWorkspace(item.workspace_id)}
             >
               {item.workspaces?.name || 'Workspace'} ? {item.role}
@@ -210,8 +216,7 @@ function AuthGate() {
     );
   }
 
-  if (!membership || !membership.active ||
-      !['analyst', 'reviewer'].includes(membership.role)) {
+  if (!hasWorkspaceAccess) {
     return (
       <main className="auth-screen">
         <section className="auth-card">
@@ -225,13 +230,28 @@ function AuthGate() {
     );
   }
 
-  return <App key={user.id + ':' + membership.workspace_id} />;
+  return (
+    <WorkspaceAccessShell
+      checking={accessChecking}
+      errorMessage={status === 'error' ? authError : ''}
+      onRetry={refreshMembership}
+      onSignOut={signOut}
+    >
+      <App key={user.id + ':' + membership.workspace_id} />
+    </WorkspaceAccessShell>
+  );
 }
 function App() {
-  const { user, role, signOut } = useAuth();
+  const {
+    user,
+    role,
+    displayRole: membershipRole,
+    actionsAllowed,
+    signOut
+  } = useAuth();
 
-  const isReviewer = role === 'reviewer';
-  const displayRole = isReviewer ? 'Reviewer' : 'Analyst';
+  const displayRole = membershipRole === 'reviewer' ? 'Reviewer' : 'Analyst';
+  const isReviewer = actionsAllowed && role === 'reviewer';
 
   const [state, setState] = useState(() => ({ ...createInitialState(), role: displayRole }));
   const [page, setPage] = useState('overview');

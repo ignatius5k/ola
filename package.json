@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
-    "test": "node --test src/engine.test.js",
+    "test": "node --test src/engine.test.js tests/*.test.js",
     "preview": "vite preview --host 127.0.0.1",
     "db:start": "supabase start",
     "db:stop": "supabase stop",
@@ -15,6 +15,7 @@
     "db:advisors": "supabase db advisors --type all --level info",
     "db:types": "supabase gen types typescript --schema public > src/db/database.types.ts",
     "db:seed:generate": "node scripts/generate-seed.mjs",
+    "db:seed:check": "node scripts/generate-seed.mjs --check",
     "db:verify:plain": "bash scripts/verify-plain-postgres.sh"
   },
   "dependencies": {
@@ -26,6 +27,7 @@
     "react-dom": "19.3.1"
   },
   "devDependencies": {
+    "jsdom": "27.1.0",
     "prettier": "^3.9.10",
     "supabase": "3.0.0",
     "vite": "8.3.5"

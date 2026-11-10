@@ -1,5 +1,6 @@
 ﻿import { assertEquals } from "jsr:@std/assert@1";
 import { requireWorkspaceMember } from "../_shared/auth.ts";
+import { assertMatch } from "jsr:@std/assert@1";
 
 const USER_ID = "user-analyst-1";
 const WORKSPACE_ID = "workspace-1";
@@ -73,6 +74,28 @@ Deno.test("missing Bearer token returns 401", async () => {
   if (!result.ok) {
     assertEquals(result.response.status, 401);
     assertEquals(result.response.headers.get("X-Request-Id"), "test-request-id");
+  }
+});
+
+Deno.test("default request ID generator remains bound to crypto", async () => {
+  const { createRequestId: _injectedRequestId, ...testDependencies } =
+    dependencies();
+
+  const result = await requireWorkspaceMember(
+    makeRequest(),
+    WORKSPACE_ID,
+    [],
+    testDependencies,
+  );
+
+  assertEquals(result.ok, false);
+
+  if (!result.ok) {
+    assertEquals(result.response.status, 401);
+    assertMatch(
+      result.response.headers.get("X-Request-Id") ?? "",
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    );
   }
 });
 
