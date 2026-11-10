@@ -1,13 +1,5 @@
 # Ola interface design specification
 
-## Motion timing
-
-- Switching between Home, Transactions and Reviews replays a 100 ms content entrance: opacity 0.35 to 1, with a 4 px upward settle. Navigation and the global header stay fixed, and the destination is interactive immediately.
-- Metric, axis and grid entrances take 160 ms; the complete chart line reveals in 400 ms. Preserve the full SVG clip and visible endpoints after playback.
-- Investigation stages take 1,100 ms each. Batch playback reads the source for 250 ms, then advances every 280 ms. Pause and resume retain the remaining time.
-- Page entrances only restart on a page change. Filter edits, table selections and form input keep their current content mounted. Case pages do not animate their main container, so the fixed approval bar retains its viewport position.
-- Respect `prefers-reduced-motion`: page and chart entrances are disabled, and investigation/batch playback presents its completed state.
-
 ## Reference and scope
 
 This specification translates the visible [Stripe web Home screen on Mobbin](https://mobbin.com/screens/fc5d4bcd-1d9a-4cf1-b2f0-cdecac3a1abf) and [Stripe Transactions screen](https://mobbin.com/screens/f706524f-2964-47a5-ba06-4fdf75779e0f) into Ola's reconciliation workflow. The user's [specific Mobbin URL](https://mobbin.com/apps/stripe-web-eb1841ea-0570-46eb-941f-a8e5299355b9/50dedd10-202d-435f-ad76-0801b1cd3dc1/screens) redirected to login in the browser, so its precise screen selection could not be verified. The connected Mobbin MCP returned the cited Stripe screens and full resolution images, which are the visual basis for the measurements below. Treat measurements as estimates from 1920 × 1324 captures, not Stripe's source tokens.

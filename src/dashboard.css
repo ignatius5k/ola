@@ -40,8 +40,8 @@
 .dashboard-overview .widget-activity span{overflow-wrap:anywhere;text-align:right}
 .dashboard-overview .chart-empty{min-height:143px;display:flex;align-items:center;font-size:11px;color:#8792a2}
 
-/* Figma node 4:7: replay the entry at 4.375x speed (160 ms) per metric/currency change.
+/* Figma node 4:7: replay the entry at 2x speed (350 ms) per metric/currency change.
    Source tracks and export: design/ola-metric-motion.json. */
-.dashboard-overview .dashboard-metric-readout{animation:ola-metric-enter 160ms cubic-bezier(.16,1,.3,1) both;animation-iteration-count:1}
+.dashboard-overview .dashboard-metric-readout{animation:ola-metric-enter 350ms cubic-bezier(.16,1,.3,1) both;animation-iteration-count:1}
 @keyframes ola-metric-enter{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){.dashboard-overview .dashboard-metric-readout{animation:none;opacity:1;transform:none}}
