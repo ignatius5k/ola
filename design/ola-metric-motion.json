@@ -37,15 +37,16 @@
   "implementation": {
     "target": "Metric number, count, chart and axes group; native dropdown remains static.",
     "trigger": "Replay once after the metric or currency changes.",
-    "durationMs": 350,
+    "durationMs": 160,
     "easing": "cubic-bezier(0.16, 1, 0.3, 1)",
     "iterations": 1,
-    "cssAdaptation": "@keyframes ola-metric-enter { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }\n@keyframes ola-axis-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }\n@keyframes ola-chart-reveal { from { transform: scaleX(0); } to { transform: scaleX(1); } }\n.metric-readout { animation: ola-metric-enter 350ms cubic-bezier(0.16, 1, 0.3, 1) both; }\n.chart-axis-labels { animation: ola-axis-enter 350ms cubic-bezier(0.16, 1, 0.3, 1) both; }\n.chart-line { stroke-dasharray: none; }\n.chart-reveal-mask { transform-origin: 0 0; animation: ola-chart-reveal 900ms linear backwards; }\n@media (prefers-reduced-motion: reduce) { .metric-readout, .chart-axis-labels, .chart-reveal-mask { animation: none; transform: none; opacity: 1; } }",
-    "conversionNote": "The authoritative Figma export below retains its original 700ms entries and 1800ms line reveal. Following the user's request for snappier motion, the app plays these tracks at 2x speed: 350ms entry and 900ms draw. Keyframes and easing are preserved; the default hold and infinite repeat are omitted.",
-    "playbackRate": 2,
-    "axisDurationMs": 350,
-    "chartDrawDurationMs": 900,
-    "renderingAdaptation": "The app reveals an always-solid polyline through a 900ms SVG clip rectangle instead of normalized stroke dashes. The clip rectangle covers the full plot and stroke endpoints after completion. No forward-filled transform remains; reduced motion uses the full static clip. The original Figma motion export is preserved below."
+    "cssAdaptation": "@keyframes ola-metric-enter { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }\n@keyframes ola-axis-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }\n@keyframes ola-chart-reveal { from { transform: scaleX(0); } to { transform: scaleX(1); } }\n.metric-readout { animation: ola-metric-enter 160ms cubic-bezier(0.16, 1, 0.3, 1) both; }\n.chart-axis-labels { animation: ola-axis-enter 160ms cubic-bezier(0.16, 1, 0.3, 1) both; }\n.chart-line { stroke-dasharray: none; }\n.chart-reveal-mask { transform-origin: 0 0; animation: ola-chart-reveal 400ms linear backwards; }\n@media (prefers-reduced-motion: reduce) { .metric-readout, .chart-axis-labels, .chart-reveal-mask { animation: none; transform: none; opacity: 1; } }",
+    "conversionNote": "The authoritative Figma export below retains its original 700ms entries and 1800ms line reveal. Following the user\u2019s request for faster motion, the app plays the entry and axis tracks at 4.375x speed (160ms), and the chart draw at 4.5x speed (400ms). Keyframes and easing are preserved; the default hold and infinite repeat are omitted.",
+    "playbackRate": 4.375,
+    "axisDurationMs": 160,
+    "chartDrawDurationMs": 400,
+    "renderingAdaptation": "The app reveals an always-solid polyline through a 400ms SVG clip rectangle instead of normalized stroke dashes. The clip rectangle covers the full plot and stroke endpoints after completion. No forward-filled transform remains; reduced motion uses the full static clip. The original Figma motion export is preserved below.",
+    "chartPlaybackRate": 4.5
   },
   "studyVerification": {
     "editableFrames": 7,

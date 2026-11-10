@@ -39,7 +39,7 @@ function buildSteps(item) {
   ];
 }
 
-const STAGE_DURATION_MS = 2800;
+const STAGE_DURATION_MS = 1100;
 const TOTAL_STAGES = 4;
 
 export default function AgentStage({ item, startKey = 0 }) {

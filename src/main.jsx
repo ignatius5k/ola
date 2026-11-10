@@ -24,6 +24,7 @@ import './stripe.css';
 import './approval.css';
 import './monitoring.css';
 import './ola-brand.css';
+import './navigation.css';
 
 const STORE_KEY = 'exception-desk-reconciliation-v2';
 const navItems = [
@@ -218,7 +219,7 @@ function App() {
     </aside>
     <div className="main-shell">
       <header className="topbar"><form className="global-search" onSubmit={e => { e.preventDefault(); setSearch(globalSearch); setFilter('All'); setLargeOnly(false); setListCurrency(''); navigate('exceptions'); }}><MagnifyingGlass size={16} /><input aria-label="Search all transactions" placeholder="Search" value={globalSearch} onChange={e => setGlobalSearch(e.target.value)} /><kbd>↵</kbd></form><div className="top-actions"><button className="icon-button" title="View sources and rules" aria-label="View help" onClick={() => {setDataTab('references');navigate('data');}}><Question size={19} /></button><button className="icon-button" title="View activity" aria-label="View activity" onClick={() => navigate('audit')}><ClockCounterClockwise size={19} /></button><button className="icon-button" title="View policy settings" aria-label="View policy settings" onClick={() => {setDataTab('rules');navigate('data');}}><GearSix size={19} /></button><div className="role-control"><UserCircle size={19} /><label className="sr-only" htmlFor="role">Act as</label><select id="role" value={state.role} onChange={e => setState(current => ({ ...current, role: e.target.value }))}><option>Analyst</option><option>Reviewer</option></select></div><button className="icon-button create-button" aria-label="Add transaction" title="Add transaction" aria-haspopup="dialog" onClick={() => setAddingTransaction(true)}><Plus size={17} weight="bold" /></button></div></header>
-      <main className={`main-content page-${page}`}>
+      <main key={page} className={`main-content page-${page} ${['overview', 'exceptions', 'review'].includes(page) ? 'page-transition' : ''}`}>
         {page === 'overview' && <Dashboard
           currency={activeDashboardCurrency} currencies={collectionCurrencies}
           onCurrencyChange={setDashboardCurrency} period={overviewPeriod}

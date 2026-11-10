@@ -7,8 +7,8 @@ const isAutomaticMatch = item => item.status === 'Auto matched' && item.category
 const isHumanVerified = item => item.status === 'Reviewed match';
 const isMatched = item => isAutomaticMatch(item) || isHumanVerified(item);
 const outcomeLabel = item => isHumanVerified(item) ? 'Human verified' : item.amountReview?.required && item.status === 'Needs review' ? 'Verify large amount' : item.status;
-const ROW_DURATION_MS = 750;
-const SOURCE_DURATION_MS = 650;
+const ROW_DURATION_MS = 280;
+const SOURCE_DURATION_MS = 250;
 
 export default function BatchPlayback({ cases, ledgerCount, newFileProcessed, onClose }) {
   const [step, setStep] = useState(-1);
