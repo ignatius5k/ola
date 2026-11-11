@@ -206,7 +206,7 @@ function manualTime(value) {
 }
 
 export function addManualTransaction(state, input, settings = RULE_SETTINGS) {
-  if (!['Analyst', 'Reviewer'].includes(state.role)) throw new Error('Only an Analyst or Reviewer can add a transaction.');
+  if (state.role !== 'Analyst') throw new Error('Only an Analyst can add a transaction.');
   if (!input || typeof input !== 'object') throw new Error('Enter the transaction details.');
   const counterparty = manualText(input.counterparty, 'a customer name', 120);
   const reference = manualText(input.reference, 'a collection reference', 100);

@@ -275,8 +275,8 @@ test('manual references are unique and cannot reuse another case’s ledger evid
 
 test('manual entry validates role, required fields, currency, channel, and timestamp', () => {
   const initial = createInitialState();
-  assert.doesNotThrow(() => addManualTransaction({ ...initial, role: 'Reviewer' }, manualInput));
-  assert.throws(() => addManualTransaction({ ...initial, role: 'Administrator' }, manualInput), /Analyst or Reviewer/);
+  assert.throws(() => addManualTransaction({ ...initial, role: 'Reviewer' }, manualInput), /Only an Analyst/);
+  assert.throws(() => addManualTransaction({ ...initial, role: 'Administrator' }, manualInput), /Only an Analyst/);
   for (const input of [
     { ...manualInput, counterparty: '' }, { ...manualInput, counterparty: 'A'.repeat(121) },
     { ...manualInput, counterparty: 'First\nSecond' }, { ...manualInput, reference: '  ' },

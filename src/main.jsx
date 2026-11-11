@@ -374,6 +374,7 @@ function App() {
     setToast('Coach note recorded in the activity log.');
   }
   function createManualTransaction(input) {
+    if (!actionsAllowed || displayRole !== 'Analyst') return;
     const next = addManualTransaction(state, input);
     const added = next.manualCollections.at(-1);
     setState(next);
@@ -476,7 +477,7 @@ function App() {
           >
             Sign out
           </button>
-        </div><button className="icon-button create-button" aria-label="Add transaction" title="Add transaction" aria-haspopup="dialog" onClick={() => setAddingTransaction(true)}><Plus size={17} weight="bold" /></button></div></header>
+        </div>{actionsAllowed && displayRole === 'Analyst' && <button className="icon-button create-button" aria-label="Add transaction" title="Add transaction" aria-haspopup="dialog" onClick={() => setAddingTransaction(true)}><Plus size={17} weight="bold" /></button>}</div></header>
       <main className={`main-content page-${page}`}>
         {page === 'overview' && <Dashboard
           currency={activeDashboardCurrency} currencies={collectionCurrencies}
@@ -533,7 +534,7 @@ function App() {
       </main>
       <footer className="console-footer"><span><TerminalWindow size={15} />Demo environment</span><span>Batch {BATCH_ID}<span className="console-separator">·</span>Rules engine</span></footer>
     </div>
-    {addingTransaction && <AddTransactionModal onClose={() => setAddingTransaction(false)} onSubmit={createManualTransaction} />}
+    {addingTransaction && actionsAllowed && displayRole === 'Analyst' && <AddTransactionModal onClose={() => setAddingTransaction(false)} onSubmit={createManualTransaction} />}
     {batchPlayback && <BatchPlayback {...batchPlayback} onClose={() => setBatchPlayback(null)} />}
     {toast && <div className="toast" role="status"><Info size={16} />{toast}<button aria-label="Dismiss message" onClick={() => setToast('')}><X size={14} /></button></div>}
   </div>;
